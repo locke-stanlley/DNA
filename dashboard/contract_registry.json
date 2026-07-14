@@ -1,0 +1,20 @@
+[
+  {
+    "name": "deployed-contract",
+    "address": "pending",
+    "codePath": "/workspaces/DNA/wasmtest/contracts-rust/hello.wasm",
+    "createdAt": "2026-07-14 06:38:49 UTC"
+  },
+  {
+    "name": "deployed-contract",
+    "address": "pending",
+    "codePath": "/workspaces/DNA/wasmtest/contracts-rust/hello.wasm",
+    "createdAt": "2026-07-14 09:39:12 UTC"
+  },
+  {
+    "name": "deployed-contract",
+    "address": "pending",
+    "codePath": "/workspaces/DNA/wasmtest/contracts-rust/hello.wasm",
+    "createdAt": "2026-07-14 09:39:31 UTC"
+  }
+]

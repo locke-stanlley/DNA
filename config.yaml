@@ -1,0 +1,30 @@
+litellm_settings:
+  master_key: sk-local-proxy-key
+  num_retries: 5
+  request_timeout: 60
+
+model_list:
+  # 1. Primary Model (Llama 3.1 70B)
+  - model_name: meta/llama-3.3-70b-instruct
+    litellm_params:
+      model: nvidia_nim/meta/llama-3.1-70b-instruct
+      api_key: "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"
+      drop_params: true
+      additional_drop_params: ["tool_choice"] # Removed "tools" here
+      fallbacks: ["fallback-llama-8b", "fallback-phi-3"]
+      
+  # 2. Backup Model A (Llama 3.1 8B)
+  - model_name: fallback-llama-8b
+    litellm_params:
+      model: nvidia_nim/meta/llama-3.1-8b-instruct
+      api_key: "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"
+      drop_params: true
+      additional_drop_params: ["tool_choice"] # Removed "tools" here
+
+  # 3. Backup Model B (Phi 3 Medium)
+  - model_name: fallback-phi-3
+    litellm_params:
+      model: nvidia_nim/microsoft/phi-3-medium-128k-instruct
+      api_key: "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"
+      drop_params: true
+      additional_drop_params: ["tool_choice"] # Removed "tools" here

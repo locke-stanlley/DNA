@@ -33,7 +33,7 @@ import (
 	"github.com/ontio/ontology-crypto/keypair"
 )
 
-var Version = "0.7.3-dev" //Set value when build project
+var Version = "1.0.1-dev" //Set value when build project
 
 const (
 	DEFAULT_CONFIG_FILE_NAME = "./config.json"

@@ -186,10 +186,7 @@ func transferTx(ctx *cli.Context) error {
 	var amount uint64
 	amountStr := ctx.String(utils.TransactionAmountFlag.Name)
 	switch strings.ToLower(asset) {
-	case "ont":
-		amount = utils.ParseOnt(amountStr)
-		amountStr = utils.FormatOnt(amount)
-	case "ong":
+	case "gas":
 		amount = utils.ParseOng(amountStr)
 		amountStr = utils.FormatOng(amount)
 	default:
@@ -258,10 +255,7 @@ func approveTx(ctx *cli.Context) error {
 
 	var amount uint64
 	switch strings.ToLower(asset) {
-	case "ont":
-		amount = utils.ParseOnt(amountStr)
-		amountStr = utils.FormatOnt(amount)
-	case "ong":
+	case "gas":
 		amount = utils.ParseOng(amountStr)
 		amountStr = utils.FormatOng(amount)
 	default:
@@ -344,10 +338,7 @@ func transferFromTx(ctx *cli.Context) error {
 
 	var amount uint64
 	switch strings.ToLower(asset) {
-	case "ont":
-		amount = utils.ParseOnt(amountStr)
-		amountStr = utils.FormatOnt(amount)
-	case "ong":
+	case "gas":
 		amount = utils.ParseOng(amountStr)
 		amountStr = utils.FormatOng(amount)
 	default:

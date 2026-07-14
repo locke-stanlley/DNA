@@ -139,6 +139,102 @@ $ ./dnaNode --testmode
 $ - input your wallet password
 ```
 
+## Same-Codespace multi-node setup
+
+If you want to run several DNA nodes inside the same Codespace, use separate directories and unique ports for each node. The most common issue is a bad seed host entry in the shared config file; use `127.0.0.1` instead of `127.0.0.01`.
+
+1. Build the binary.
+
+```shell
+$ cd /workspaces/DNA
+$ make
+```
+
+2. Create one working directory per node and copy the binary and config there.
+
+```shell
+$ mkdir -p node1 node2 node3 node4
+$ cp dnaNode node1/
+$ cp dnaNode node2/
+$ cp dnaNode node3/
+$ cp dnaNode node4/
+$ cp config.json node1/
+$ cp config.json node2/
+$ cp config.json node3/
+$ cp config.json node4/
+```
+
+3. Create one wallet per node.
+
+```shell
+$ ./dnaNode account add -d --wallet node1/wallet.dat
+$ ./dnaNode account add -d --wallet node2/wallet.dat
+$ ./dnaNode account add -d --wallet node3/wallet.dat
+$ ./dnaNode account add -d --wallet node4/wallet.dat
+```
+
+4. Make sure the seed list in each copied config uses the loopback address correctly.
+
+```json
+"SeedList": [
+  "127.0.0.1:20338",
+  "127.0.0.1:20438",
+  "127.0.0.1:20538",
+  "127.0.0.1:20638"
+]
+```
+
+5. Start the nodes in separate terminals with different ports.
+
+```shell
+$ cd /workspaces/DNA/node1
+$ ./dnaNode --config config.json --data-dir Chain --wallet wallet.dat --nodeport 20338 --rpcport 20336 --restport 20334 --wsport 20335
+```
+
+```shell
+$ cd /workspaces/DNA/node2
+$ ./dnaNode --config config.json --data-dir Chain --wallet wallet.dat --nodeport 20438 --rpcport 20436 --restport 20434 --wsport 20435
+```
+
+```shell
+$ cd /workspaces/DNA/node3
+$ ./dnaNode --config config.json --data-dir Chain --wallet wallet.dat --nodeport 20538 --rpcport 20536 --restport 20534 --wsport 20535
+```
+
+```shell
+$ cd /workspaces/DNA/node4
+$ ./dnaNode --config config.json --data-dir Chain --wallet wallet.dat --nodeport 20638 --rpcport 20636 --restport 20634 --wsport 20635
+```
+
+6. Verify that each node reports a current block height.
+
+```shell
+$ cd /workspaces/DNA
+$ ./dnaNode info curblockheight --rpcport 20336
+$ ./dnaNode info curblockheight --rpcport 20436
+$ ./dnaNode info curblockheight --rpcport 20536
+$ ./dnaNode info curblockheight --rpcport 20636
+```
+
+7. Build and send a transfer transaction from one wallet to another. The signing command expects the hex-encoded raw transaction string, so pass the command output as an argument rather than the literal file name.
+
+```shell
+$ ./dnaNode buildtx transfer \
+    --wallet node1/wallet.dat \
+    --from <address-from-node1> \
+    --to <address-from-node2> \
+    --amount 1 \
+    --asset ONG > tx.raw
+
+$ ./dnaNode sigtx \
+    --wallet node1/wallet.dat \
+    --account <address-from-node1> \
+    --rpcport 20336 \
+    "$(cat tx.raw)"
+```
+
+8. If you see an error such as `lookup 127.0.0.01: no such host`, fix the config file to use `127.0.0.1` in every seed entry. If you see `address already in use`, stop the existing process that is listening on that port or choose another port.
+
 ## Getting Started
 
 Start the seed node program first and then other nodes. Just run:

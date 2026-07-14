@@ -1,13 +1,13 @@
 {
   "SeedList": [
     "127.0.0.1:20338",
-    "127.0.0.01:20438",
-    "127.0.0.01:20538",
-    "127.0.0.01:20638"
+    "127.0.0.1:20438",
+    "127.0.0.1:20538",
+    "127.0.0.1:20638"
   ],
   "ConsensusType":"vbft",
   "VBFT":{
-    "n":40,
+    "n":4,
     "c":1,
     "k":4,
     "l":64,
@@ -22,26 +22,26 @@
     "peers":[
       {
         "index":1,
-        "peerPubkey":"0289ebcf708798cd4c2570385e1371ba10bdc91e4800fa5b98a9b276eab9300f10",
-        "address":"ANT97HNwurK2LE2LEiU72MsSD684nPyJMX",
+        "peerPubkey":"021819e94bf1519c015d3af65b211e51e45497485851f68087f143ed4ef875dc2d",
+        "address":"ARDRC7826okF5FqoADoh433upmnhoahSTq",
         "initPos":10000
       },
       {
         "index":2,
-        "peerPubkey":"039dc5f67a4e1b3e4fc907ed430fd3958d8b6690f4f298b5e041697bd5be77f3e8",
-        "address":"AMLU5evr9EeW8G1WaZT1n1HDBxaq5GczeC",
+        "peerPubkey":"03a024ccdd1ecaf0e8f098abb52fbcfbfea3fbac62f482f3f8d665549207bf9aeb",
+        "address":"ALMVNfjRsCiEjrgVdmV6pP5jgXgw2S28wo",
         "initPos":10000
       },
       {
         "index":3,
-        "peerPubkey":"0369f4005b006166e988af436860b8a06c15f3eb272ccbabff175e067e6bba88d7",
-        "address":"AbSAwqHQmNMoUT8ps8N16HciYtgprbNozF",
+        "peerPubkey":"030ac1bc61830888ce47243248b55b198306a842d918ca20217af610f9cef821bf",
+        "address":"Ac72NXUusaje5nX9LNvZCmrfrSGZvGZGF7",
         "initPos":10000
       },
       {
         "index":4,
-        "peerPubkey":"035998e70d829eea58998ec743113cf778f66932a063efc1a0a0496717c4a0d93d",
-        "address":"AemhQtcPTGegSk1UAsiLnePVcut1MLXSPg",
+        "peerPubkey":"021be147355177fa0a1c2aecb24817c7d8455ebb8e702dfd71bee9a3dd1d6177d0",
+        "address":"AQG2Sr7KziwgvVkQ1e3GNSB9QJrB4NhbKt",
         "initPos":10000
       }
     ]
