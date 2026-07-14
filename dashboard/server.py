@@ -303,37 +303,54 @@ class Handler(BaseHTTPRequestHandler):
 
     def _asset_transfer(self):
         data = self._read_json()
+        frm  = data.get("from") or ""
+        to   = data.get("to")   or ""
+        amt  = data.get("amount") or "1"
+        asset = data.get("asset") or "gas"
         cmd = ["./dnaNode", "asset", "transfer", "--wallet", self._dw(data),
-               "--rpcport", str(self._dr(data)), "--asset", data.get("asset") or "gas",
-               "--amount", str(data.get("amount") or "1"),
+               "--rpcport", str(self._dr(data)), "--asset", asset,
+               "--amount", str(amt),
                "--gasprice", str(data.get("gasPrice") or "0"),
                "--gaslimit", str(data.get("gasLimit") or "20000")]
-        if data.get("from"): cmd += ["--from", data["from"]]
-        if data.get("to"):   cmd += ["--to",   data["to"]]
+        if frm: cmd += ["--from", frm]
+        if to:  cmd += ["--to",   to]
         proc = self._run(cmd, stdin=f"{self._dp(data)}\n")
-        self._append_history({"type": "Asset transfer", "summary": f"{data.get('amount')} {data.get('asset','gas')} → {data.get('to')}"})
+        frm_short = (frm[:8] + "…" + frm[-4:]) if len(frm) > 14 else (frm or "—")
+        to_short  = (to[:8]  + "…" + to[-4:])  if len(to)  > 14 else (to  or "—")
+        self._append_history({"type": "Asset transfer", "summary": f"{amt} {asset.upper()}  {frm_short} → {to_short}"})
         return self._fmt(proc)
 
     def _asset_approve(self):
         data = self._read_json()
+        frm  = data.get("from") or ""
+        to   = data.get("to")   or ""
+        amt  = data.get("amount") or "1"
+        asset = data.get("asset") or "ont"
         cmd = ["./dnaNode", "asset", "approve", "--wallet", self._dw(data),
-               "--rpcport", str(self._dr(data)), "--asset", data.get("asset") or "ont",
-               "--amount", str(data.get("amount") or "1")]
-        if data.get("from"): cmd += ["--from", data["from"]]
-        if data.get("to"):   cmd += ["--to",   data["to"]]
+               "--rpcport", str(self._dr(data)), "--asset", asset,
+               "--amount", str(amt)]
+        if frm: cmd += ["--from", frm]
+        if to:  cmd += ["--to",   to]
         proc = self._run(cmd, stdin=f"{self._dp(data)}\n")
-        self._append_history({"type": "Approve", "summary": f"Approve {data.get('amount')} {data.get('asset','ont')} for {data.get('to')}"})
+        to_short = (to[:8] + "…" + to[-4:]) if len(to) > 14 else (to or "—")
+        self._append_history({"type": "Approve", "summary": f"Approve {amt} {asset.upper()} for {to_short}"})
         return self._fmt(proc)
 
     def _asset_transferfrom(self):
         data = self._read_json()
+        frm    = data.get("from")   or ""
+        to     = data.get("to")     or ""
+        sender = data.get("sender") or ""
+        amt    = data.get("amount") or "1"
+        asset  = data.get("asset")  or "ont"
         cmd = ["./dnaNode", "asset", "transferfrom", "--wallet", self._dw(data),
-               "--rpcport", str(self._dr(data)), "--asset", data.get("asset") or "ont",
-               "--amount", str(data.get("amount") or "1")]
-        for flag, key in [("--sender", "sender"), ("--from", "from"), ("--to", "to")]:
-            if data.get(key): cmd += [flag, data[key]]
+               "--rpcport", str(self._dr(data)), "--asset", asset, "--amount", str(amt)]
+        for flag, val in [("--sender", sender), ("--from", frm), ("--to", to)]:
+            if val: cmd += [flag, val]
         proc = self._run(cmd, stdin=f"{self._dp(data)}\n")
-        self._append_history({"type": "TransferFrom", "summary": f"{data.get('amount')} {data.get('asset','ont')} from {data.get('from')} → {data.get('to')}"})
+        frm_short = (frm[:8] + "…" + frm[-4:]) if len(frm) > 14 else (frm or "—")
+        to_short  = (to[:8]  + "…" + to[-4:])  if len(to)  > 14 else (to  or "—")
+        self._append_history({"type": "TransferFrom", "summary": f"{amt} {asset.upper()}  {frm_short} → {to_short}"})
         return self._fmt(proc)
 
     def _asset_allowance(self):
@@ -354,12 +371,18 @@ class Handler(BaseHTTPRequestHandler):
     # ------------------------------------------------------------------ transactions
     def _transfer(self):
         data = self._read_json()
+        frm  = data.get("from") or ""
+        to   = data.get("to")   or ""
+        amt  = data.get("amount") or "1"
+        asset = data.get("asset") or "gas"
         cmd = ["./dnaNode", "buildtx", "transfer", "--wallet", self._dw(data),
-               "--from", data.get("from") or "", "--to", data.get("to") or "",
-               "--amount", str(data.get("amount") or "1"), "--asset", data.get("asset") or "gas",
+               "--from", frm, "--to", to,
+               "--amount", str(amt), "--asset", asset,
                "--rpcport", str(self._dr(data))]
         proc = self._run(cmd, stdin=f"{self._dp(data)}\n")
-        self._append_history({"type": "Transfer", "summary": f"{data.get('amount')} {data.get('asset','gas')} → {data.get('to')}"})
+        frm_short = (frm[:8] + "…" + frm[-4:]) if len(frm) > 14 else (frm or "—")
+        to_short  = (to[:8]  + "…" + to[-4:])  if len(to)  > 14 else (to  or "—")
+        self._append_history({"type": "Transfer", "summary": f"{amt} {asset.upper()}  {frm_short} → {to_short}"})
         return self._fmt(proc)
 
     def _transaction_build(self):
@@ -426,8 +449,7 @@ class Handler(BaseHTTPRequestHandler):
                "--params", data.get("params") or "string:hello",
                "--version", str(data.get("version") or "0")]
         proc = self._run(cmd, stdin=f"{self._dp(data)}\n")
-        self._append_history({"type": "Contract invoke", "summary": f"Invoked {addr or 'contract'}"})
-        return self._fmt(proc)
+        self._append_history({"type": "Contract invoke", "summary": f"Invoked {(addr[:10] + '…') if len(addr) > 10 else (addr or 'contract')}"})
 
     def _contract_list(self):
         return {"contracts": self._load_json_file(CONTRACTS_PATH)}

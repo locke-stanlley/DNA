@@ -88,30 +88,37 @@
   function renderShell() {
     $("#app").innerHTML =
       '<div class="shell">' +
-        '<aside class="sidebar">' +
-          '<div class="brand">' +
-            '<p class="brand-eyebrow">DNA Network</p>' +
-            '<div class="brand-title">Control Center</div>' +
-            '<p class="brand-sub">Operate the local DNA network from a clean, professional workspace.</p>' +
+        '<aside class="sidebar" id="sidebar">' +
+          '<div class="sidebar-top">' +
+            '<div class="sidebar-brand">' +
+              '<div class="sidebar-brand-logo">D</div>' +
+              '<div class="sidebar-brand-text">' +
+                '<p class="sidebar-brand-eyebrow">DNA Network</p>' +
+                '<div class="sidebar-brand-name">Control Center</div>' +
+              '</div>' +
+            '</div>' +
+            '<button class="sidebar-collapse-btn" id="sidebar-collapse" title="Toggle sidebar">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>' +
+            '</button>' +
           '</div>' +
-          '<div class="sidebar-status">' +
-            '<span class="pill pill-online" id="sb-network">Network: online</span>' +
-            '<span class="pill pill-idle" id="sb-nodes">Nodes: —</span>' +
-            '<span class="pill pill-idle" id="sb-wallet">Wallet: idle</span>' +
+          '<div class="sidebar-status" id="sidebar-status">' +
+            '<span class="s-pill online" id="sb-network"><span class="s-pill-label">Network: online</span></span>' +
+            '<span class="s-pill" id="sb-nodes"><span class="s-pill-label">Nodes: —</span></span>' +
+            '<span class="s-pill" id="sb-wallet"><span class="s-pill-label">Wallet: idle</span></span>' +
           '</div>' +
-          '<nav class="nav" id="sidebar-nav">' +
-            '<a href="#/" data-route="/"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Dashboard</a>' +
-            '<a href="#/wallet" data-route="/wallet"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg> Wallet</a>' +
-            '<a href="#/nodes" data-route="/nodes"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="12" r="2"/><line x1="7" y1="10.5" x2="10.5" y2="7"/><line x1="13.5" y1="7" x2="17" y2="10.5"/><line x1="7" y1="13.5" x2="10.5" y2="17"/><line x1="13.5" y1="17" x2="17" y2="13.5"/></svg> Nodes</a>' +
-            '<a href="#/transactions" data-route="/transactions"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m17 1 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 23-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> Transactions</a>' +
-            '<a href="#/contracts" data-route="/contracts"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg> Contracts</a>' +
-            '<a href="#/explorer" data-route="/explorer"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Explorer</a>' +
+          '<nav class="sidebar-nav" id="sidebar-nav">' +
+            '<a href="#/" data-route="/" data-label="Dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="nav-label">Dashboard</span></a>' +
+            '<a href="#/wallet" data-route="/wallet" data-label="Wallet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg><span class="nav-label">Wallet</span></a>' +
+            '<a href="#/nodes" data-route="/nodes" data-label="Nodes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="12" r="2"/><line x1="7" y1="10.5" x2="10.5" y2="7"/><line x1="13.5" y1="7" x2="17" y2="10.5"/><line x1="7" y1="13.5" x2="10.5" y2="17"/><line x1="13.5" y1="17" x2="17" y2="13.5"/></svg><span class="nav-label">Nodes</span></a>' +
+            '<a href="#/transactions" data-route="/transactions" data-label="Transactions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m17 1 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 23-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span class="nav-label">Transactions</span></a>' +
+            '<a href="#/contracts" data-route="/contracts" data-label="Contracts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg><span class="nav-label">Contracts</span></a>' +
+            '<a href="#/explorer" data-route="/explorer" data-label="Explorer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><span class="nav-label">Explorer</span></a>' +
           '</nav>' +
-          '<div class="sidebar-footer">DNA v0.7.3-dev</div>' +
+          '<div class="sidebar-footer"><span class="nav-label">DNA v0.7.3-dev</span><span class="sidebar-footer-dot">D</span></div>' +
         '</aside>' +
         '<main class="main">' +
           '<div class="topbar">' +
-            '<div class="topbar-left"><button class="menu-toggle" id="menu-toggle">&#9776;</button><span class="topbar-title" id="page-title">Dashboard</span></div>' +
+            '<div class="topbar-left"><button class="menu-toggle" id="menu-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button><span class="topbar-title" id="page-title">Dashboard</span></div>' +
             '<div class="topbar-right"><button class="btn btn-secondary btn-sm" id="global-refresh">Refresh</button></div>' +
           '</div>' +
           '<div class="content" id="view-container"></div>' +
@@ -119,12 +126,24 @@
       '</div>';
 
     $("#global-refresh").addEventListener("click", router);
-    $("#menu-toggle").addEventListener("click", function () {
-      $(".sidebar").classList.toggle("open");
+
+    // Desktop collapse
+    $("#sidebar-collapse").addEventListener("click", function () {
+      var s = $("#sidebar");
+      s.classList.toggle("collapsed");
+      localStorage.setItem("sidebarCollapsed", s.classList.contains("collapsed") ? "1" : "0");
     });
-    $$(".nav a").forEach(function (a) {
+    if (localStorage.getItem("sidebarCollapsed") === "1") {
+      $("#sidebar").classList.add("collapsed");
+    }
+
+    // Mobile open/close
+    $("#menu-toggle").addEventListener("click", function () {
+      $("#sidebar").classList.toggle("open");
+    });
+    $$(".sidebar-nav a").forEach(function (a) {
       a.addEventListener("click", function () {
-        $(".sidebar").classList.remove("open");
+        $("#sidebar").classList.remove("open");
       });
     });
   }
@@ -138,7 +157,7 @@
   }
 
   function setActive(route) {
-    $$(".nav a").forEach(function (a) {
+    $$(".sidebar-nav a").forEach(function (a) {
       a.classList.toggle("active", a.getAttribute("data-route") === route);
     });
     var titles = {
@@ -174,7 +193,7 @@
         default:               container.innerHTML = viewDashboard();
       }
     } catch (e) {
-      container.innerHTML = '<div class="panel"><div class="empty-state"><div class="item-card-body"><div class="item-card-title">Navigation Error</div><div class="item-card-sub">' + esc(e.message) + '</p></div></div>';
+      container.innerHTML = '<div class="card"><div class="empty"><div class="item-row-body"><div class="item-row-title">Navigation Error</div><div class="item-row-sub">' + esc(e.message) + '</p></div></div>';
     }
     // bind events after DOM is in place
     bindViewEvents();
@@ -193,16 +212,19 @@
 
   function updateSidebarStatus() {
     var net = $("#sb-network");
-    var n = $("#sb-nodes");
-    var w = $("#sb-wallet");
+    var n   = $("#sb-nodes");
+    var w   = $("#sb-wallet");
     if (!net) return;
     var online = State.nodes.filter(function (x) { return x.online; }).length;
-    net.textContent = "Network: " + (State.networkOnline ? "online" : "offline");
-    net.className = "pill " + (State.networkOnline ? "pill-online" : "pill-offline");
-    n.textContent = "Nodes: " + online + "/" + State.nodes.length;
-    n.className = "pill " + (online > 0 ? "pill-online" : "pill-offline");
-    w.textContent = State.walletReady ? "Wallet: ready" : "Wallet: idle";
-    w.className = "pill " + (State.walletReady ? "pill-ready" : "pill-idle");
+    var netLabel  = "Network: " + (State.networkOnline ? "online" : "offline");
+    var nodeLabel = "Nodes: " + online + "/" + State.nodes.length;
+    var walLabel  = State.walletReady ? "Wallet: ready" : "Wallet: idle";
+    net.className = "s-pill " + (State.networkOnline ? "online" : "offline");
+    net.querySelector(".s-pill-label").textContent = netLabel;
+    n.className = "s-pill " + (online > 0 ? "online" : "offline");
+    n.querySelector(".s-pill-label").textContent = nodeLabel;
+    w.className = "s-pill " + (State.walletReady ? "ready" : "");
+    w.querySelector(".s-pill-label").textContent = walLabel;
   }
 
   window.addEventListener("hashchange", router);
@@ -225,10 +247,10 @@
         updateDashContracts(data.contracts);
       } catch (e) {
         $("#view-container").innerHTML =
-          '<div class="panel"><div class="empty-state"><div class="item-card-body"><div class="item-card-title">Connection Error</div><div class="item-card-sub">' + esc(e.message) + '</p><br/><button class="btn btn-primary" onclick="location.reload()">Retry</button></div></div>';
+          '<div class="card"><div class="empty"><div class="item-row-body"><div class="item-row-title">Connection Error</div><div class="item-row-sub">' + esc(e.message) + '</p><br/><button class="btn btn-primary" onclick="location.reload()">Retry</button></div></div>';
       }
     })();
-    return '<div class="hero panel">' +
+    return '<div class="hero card">' +
       '<div><p class="eyebrow" style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--primary)">Live network view</p><h2>Monitor and operate your DNA test network</h2><p style="color:var(--text-secondary);font-size:14px;margin:0">This workspace connects to the local DNA node processes and exposes real wallet, node, transaction, and contract actions.</p></div>' +
       '<button class="btn btn-primary" onclick="location.reload()">Refresh</button></div>' +
       '<div class="stats-grid" id="dash-stats">' +
@@ -237,9 +259,9 @@
         '<div class="stat-card"><span class="stat-label">Last updated</span><strong class="stat-value sm" id="stat-time">—</strong></div>' +
         '<div class="stat-card"><span class="stat-label">Wallet status</span><strong class="stat-value sm" id="stat-wallet">—</strong></div>' +
       '</div>' +
-      '<div class="panel"><div class="panel-header"><div class="panel-header-text"><h3>Node Overview</h3></div><div class="node-grid" id="dash-nodes"></div></div>' +
-      '<div class="panel"><div class="panel-header"><div class="panel-header-text"><h3>Recent Transactions</h3></div><div class="list" id="dash-history"></div></div>' +
-      '<div class="panel"><div class="panel-header"><div class="panel-header-text"><h3>Deployed Contracts</h3></div><div class="list" id="dash-contracts"></div></div>';
+      '<div class="card"><div class="card-header"><div class="card-header-text"><h3>Node Overview</h3></div></div><div class="node-grid" id="dash-nodes"></div></div>' +
+      '<div class="card"><div class="card-header"><div class="card-header-text"><h3>Recent Transactions</h3></div></div><div class="item-list" id="dash-history"></div></div>' +
+      '<div class="card"><div class="card-header"><div class="card-header-text"><h3>Deployed Contracts</h3></div></div><div class="item-list" id="dash-contracts"></div></div>';
   }
 
   function updateDashStats(data) {
@@ -253,7 +275,7 @@
   function updateDashNodes(nodes) {
     var el = $("#dash-nodes");
     if (!el) return;
-    if (!nodes || !nodes.length) { el.innerHTML = '<div class="empty-state"><div class="item-card-body"><div class="item-card-title">No nodes available</div><div class="item-card-sub">Start the network from the Nodes page.</p></div>'; return; }
+    if (!nodes || !nodes.length) { el.innerHTML = '<div class="empty"><div class="item-row-body"><div class="item-row-title">No nodes available</div><div class="item-row-sub">Start the network from the Nodes page.</p></div>'; return; }
     el.innerHTML = nodes.map(function (n) {
       return '<div class="node-card ' + (n.online ? 'online' : 'offline') + '"><div class="node-card-name">' + esc(n.label) + '</div><div class="node-card-row"><span>RPC</span><span>' + esc(n.host) + ':' + n.rpcPort + '</span></div><div class="node-card-row"><span>REST</span><span>' + esc(n.host) + ':' + n.restPort + '</span></div><div class="node-card-height">' + (n.height || 0) + '</div><span class="pill ' + (n.online ? 'pill-online' : 'pill-offline') + '">' + (n.online ? 'Online' : 'Offline') + '</span></div>';
     }).join("");
@@ -262,23 +284,23 @@
   function updateDashHistory(history) {
     var el = $("#dash-history");
     if (!el) return;
-    if (!history || !history.length) { el.innerHTML = '<div class="empty-state"><p>No transactions recorded yet.</p></div>'; return; }
-    el.innerHTML = history.map(function (h) { return '<div class="item-card"><div class="item-card-body"><div class="item-card-title">' + esc(h.type || "Transfer") + '</div><div class="item-card-sub">' + esc(h.summary || "") + '</div><div class="item-card-meta">' + esc(h.createdAt || "") + '</div></div>'; }).join("");
+    if (!history || !history.length) { el.innerHTML = '<div class="empty"><p>No transactions recorded yet.</p></div>'; return; }
+    el.innerHTML = '<div class="tx-list">' + history.map(function (h) { return historyRow(h); }).join("") + '</div>';
   }
 
   function updateDashContracts(contracts) {
     var el = $("#dash-contracts");
     if (!el) return;
-    if (!contracts || !contracts.length) { el.innerHTML = '<div class="empty-state"><p>No contracts deployed yet.</p></div>'; return; }
-    el.innerHTML = contracts.map(function (c) { return '<div class="item-card"><div class="item-card-body"><div class="item-card-title">' + esc(c.name || "Contract") + '</div><div class="item-card-sub">' + esc(c.address || "pending") + '</div><div class="item-card-meta">' + esc(c.createdAt || "") + '</div></div>'; }).join("");
+    if (!contracts || !contracts.length) { el.innerHTML = '<div class="empty"><p>No contracts deployed yet.</p></div>'; return; }
+    el.innerHTML = contracts.map(function (c) { return '<div class="item-row"><div class="item-row-body"><div class="item-row-title">' + esc(c.name || "Contract") + '</div><div class="item-row-sub">' + esc(c.address || "pending") + '</div><div class="item-row-meta">' + esc(c.createdAt || "") + '</div></div>'; }).join("");
   }
 
   /* ================================================================
      View: Wallet  (#/wallet)
      ================================================================ */
   function viewWallet() {
-    return '<div class="panel">' +
-      '<div class="panel-header"><div class="panel-header-text"><h3>Wallet Access</h3><p>Create, unlock, import, or export a wallet file with real node-backed actions.</p></div>' +
+    return '<div class="card">' +
+      '<div class="card-header"><div class="card-header-text"><h3>Wallet Access</h3><p>Create, unlock, import, or export a wallet file with real node-backed actions.</p></div></div>' +
       '<div class="tabs" id="wallet-tabs">' +
         '<button class="tab active" data-tab="w-create">Create</button>' +
         '<button class="tab" data-tab="w-unlock">Unlock</button>' +
@@ -329,16 +351,16 @@
      View: Nodes  (#/nodes)
      ================================================================ */
   function viewNodes() {
-    return '<div class="panel">' +
-      '<div class="panel-header"><div class="panel-header-text"><h3>Node Management</h3><p>Inspect live node health and manage the test network.</p></div>' +
+    return '<div class="card">' +
+      '<div class="card-header"><div class="card-header-text"><h3>Node Management</h3><p>Inspect live node health and manage the test network.</p></div></div>' +
       '<div class="btn-group" style="margin-bottom:20px">' +
         '<button class="btn btn-primary" id="btn-start-nodes">Start network</button>' +
         '<button class="btn btn-danger" id="btn-stop-nodes">Stop network</button>' +
       '</div>' +
       '<div class="node-grid" id="node-cards"></div>' +
     '</div>' +
-    '<div class="panel">' +
-      '<div class="panel-header"><div class="panel-header-text"><h3>Node Logs</h3><p>View the latest log output from a running node.</p></div>' +
+    '<div class="card">' +
+      '<div class="card-header"><div class="card-header-text"><h3>Node Logs</h3><p>View the latest log output from a running node.</p></div></div>' +
       '<div class="btn-group" style="margin-bottom:12px">' +
         '<button class="btn btn-secondary node-log-btn" data-node="node1">Node 1</button>' +
         '<button class="btn btn-secondary node-log-btn" data-node="node2">Node 2</button>' +
@@ -356,14 +378,14 @@
       updateSidebarStatus();
       renderNodeCards(data.nodes);
     } catch (e) {
-      $("#node-cards").innerHTML = '<div class="empty-state"><div class="item-card-body"><div class="item-card-title">Cannot load nodes</div><div class="item-card-sub">' + esc(e.message) + '</p></div>';
+      $("#node-cards").innerHTML = '<div class="empty"><div class="item-row-body"><div class="item-row-title">Cannot load nodes</div><div class="item-row-sub">' + esc(e.message) + '</p></div>';
     }
   }
 
   function renderNodeCards(nodes) {
     var el = $("#node-cards");
     if (!el) return;
-    if (!nodes || !nodes.length) { el.innerHTML = '<div class="empty-state"><div class="item-card-body"><div class="item-card-title">No nodes available</div><div class="item-card-sub">Click "Start network" to launch nodes.</p></div>'; return; }
+    if (!nodes || !nodes.length) { el.innerHTML = '<div class="empty"><div class="item-row-body"><div class="item-row-title">No nodes available</div><div class="item-row-sub">Click "Start network" to launch nodes.</p></div>'; return; }
     el.innerHTML = nodes.map(function (n) {
       return '<div class="node-card ' + (n.online ? 'online' : 'offline') + '"><div class="node-card-name">' + esc(n.label) + '</div><div class="node-card-row"><span>RPC</span><span>' + esc(n.host) + ':' + n.rpcPort + '</span></div><div class="node-card-row"><span>REST</span><span>' + esc(n.host) + ':' + n.restPort + '</span></div><div class="node-card-height">' + (n.height || 0) + '</div><span class="pill ' + (n.online ? 'pill-online' : 'pill-offline') + '">' + (n.online ? 'Online' : 'Offline') + '</span></div>';
     }).join("");
@@ -373,8 +395,8 @@
      View: Transactions  (#/transactions)
      ================================================================ */
   function viewTransactions() {
-    return '<div class="panel">' +
-      '<div class="panel-header"><div class="panel-header-text"><h3>Send Transfer</h3><p>Build and send real transfers, and review recent transaction activity.</p></div>' +
+    return '<div class="card">' +
+      '<div class="card-header"><div class="card-header-text"><h3>Send Transfer</h3><p>Build and send real transfers, and review recent transaction activity.</p></div></div>' +
       '<div class="tabs" id="tx-tabs">' +
         '<button class="tab active" data-tab="tx-simple">Quick Transfer</button>' +
         '<button class="tab" data-tab="tx-advanced">Advanced Build</button>' +
@@ -437,10 +459,10 @@
 
       '<div class="result-box" id="tx-result">Transfer output will appear here.</div>' +
     '</div>' +
-    '<div class="panel">' +
-      '<div class="panel-header"><div class="panel-header-text"><h3>Transaction History</h3></div>' +
+    '<div class="card">' +
+      '<div class="card-header"><div class="card-header-text"><h3>Transaction History</h3></div></div>' +
       '<button class="btn btn-secondary" id="btn-refresh-history" style="margin-bottom:12px">Refresh history</button>' +
-      '<div class="list" id="history-list"></div>' +
+      '<div class="item-list" id="history-list"></div>' +
     '</div>';
   }
 
@@ -450,11 +472,11 @@
       var items = data.history || [];
       var el = $(selector);
       if (!el) return;
-      if (!items.length) { el.innerHTML = '<div class="empty-state"><p>No transactions recorded yet.</p></div>'; return; }
-      el.innerHTML = items.map(function (h) { return '<div class="item-card"><div class="item-card-body"><div class="item-card-title">' + esc(h.type || "Transfer") + '</div><div class="item-card-sub">' + esc(h.summary || "") + '</div><div class="item-card-meta">' + esc(h.createdAt || "") + '</div></div>'; }).join("");
+      if (!items.length) { el.innerHTML = '<div class="empty"><p>No transactions recorded yet.</p></div>'; return; }
+      el.innerHTML = '<div class="tx-list">' + items.map(function (h) { return historyRow(h); }).join("") + '</div>';
     } catch (e) {
       var el = $(selector);
-      if (el) el.innerHTML = '<div class="item-card">' + esc(e.message) + '</div>';
+      if (el) el.innerHTML = '<div class="item-row"><div class="item-row-body"><div class="item-row-title err-text">' + esc(e.message) + '</div></div></div>';
     }
   }
 
@@ -462,8 +484,8 @@
      View: Contracts  (#/contracts)
      ================================================================ */
   function viewContracts() {
-    return '<div class="panel">' +
-      '<div class="panel-header"><div class="panel-header-text"><h3>Smart Contracts</h3><p>Deploy and invoke smart contracts from the live network.</p></div>' +
+    return '<div class="card">' +
+      '<div class="card-header"><div class="card-header-text"><h3>Smart Contracts</h3><p>Deploy and invoke smart contracts from the live network.</p></div></div>' +
       '<div class="tabs" id="contract-tabs">' +
         '<button class="tab active" data-tab="c-deploy">Deploy</button>' +
         '<button class="tab" data-tab="c-invoke">Invoke</button>' +
@@ -489,10 +511,10 @@
       '</div>' +
       '<div class="result-box" id="contract-result">Contract output will appear here.</div>' +
     '</div>' +
-    '<div class="panel">' +
-      '<div class="panel-header"><div class="panel-header-text"><h3>Contract Explorer</h3></div>' +
+    '<div class="card">' +
+      '<div class="card-header"><div class="card-header-text"><h3>Contract Explorer</h3></div></div>' +
       '<button class="btn btn-secondary" id="btn-refresh-contracts" style="margin-bottom:12px">Refresh explorer</button>' +
-      '<div class="list" id="contract-list"></div>' +
+      '<div class="item-list" id="contract-list"></div>' +
     '</div>';
   }
 
@@ -502,11 +524,11 @@
       var contracts = data.contracts || [];
       var el = $(selector);
       if (!el) return;
-      if (!contracts.length) { el.innerHTML = '<div class="empty-state"><p>No deployed contracts yet.</p></div>'; return; }
-      el.innerHTML = contracts.map(function (c) { return '<div class="item-card"><div class="item-card-body"><div class="item-card-title">' + esc(c.name || "Contract") + '</div><div class="item-card-sub">' + (c.address ? truncateAddr(c.address, 12) : "pending") + '</div><div class="item-card-meta">' + esc(c.codePath || "") + '</div></div>'; }).join("");
+      if (!contracts.length) { el.innerHTML = '<div class="empty"><p>No deployed contracts yet.</p></div>'; return; }
+      el.innerHTML = contracts.map(function (c) { return '<div class="item-row"><div class="item-row-body"><div class="item-row-title">' + esc(c.name || "Contract") + '</div><div class="item-row-sub">' + (c.address ? truncateAddr(c.address, 12) : "pending") + '</div><div class="item-row-meta">' + esc(c.codePath || "") + '</div></div>'; }).join("");
     } catch (e) {
       var el = $(selector);
-      if (el) el.innerHTML = '<div class="item-card">' + esc(e.message) + '</div>';
+      if (el) el.innerHTML = '<div class="item-row">' + esc(e.message) + '</div>';
     }
   }
 
@@ -514,8 +536,8 @@
      View: Explorer  (#/explorer)
      ================================================================ */
   function viewExplorer() {
-    return '<div class="panel">' +
-      '<div class="panel-header"><div class="panel-header-text"><h3>Blockchain Explorer</h3><p>Look up blocks, transactions, chain status, and account balances.</p></div>' +
+    return '<div class="card">' +
+      '<div class="card-header"><div class="card-header-text"><h3>Blockchain Explorer</h3><p>Look up blocks, transactions, chain status, and account balances.</p></div></div>' +
       '<div class="tabs" id="explorer-tabs">' +
         '<button class="tab active" data-tab="ex-overview">Overview</button>' +
         '<button class="tab" data-tab="ex-block">Block</button>' +
@@ -791,10 +813,10 @@
   }
 
   async function nodeStart() {
-    try { var data = await API.nodeStart(); showToast(data.message || "Nodes launching", "success"); } catch (e) { showToast(e.message, "error"); }
+    try { var data = await API.nodeStart(); showToast(data.message || "Nodes launching", "ok"); } catch (e) { showToast(e.message, "err"); }
   }
   async function nodeStop() {
-    try { var data = await API.nodeStop(); showToast(data.message || "Nodes stopping", "success"); } catch (e) { showToast(e.message, "error"); }
+    try { var data = await API.nodeStop(); showToast(data.message || "Nodes stopping", "ok"); } catch (e) { showToast(e.message, "err"); }
   }
 
   async function txSend() {
@@ -900,6 +922,38 @@
      ================================================================ */
   function val(id) { var el = $("#" + id); return el ? el.value : ""; }
   function valNum(id) { return parseInt(val(id), 10) || 0; }
+
+  /* ================================================================
+     History row renderer
+     ================================================================ */
+  var TX_TYPE_META = {
+    "Transfer":        { icon: "↑", cls: "tx-transfer" },
+    "Asset transfer":  { icon: "↑", cls: "tx-transfer" },
+    "TransferFrom":    { icon: "↕", cls: "tx-transferfrom" },
+    "Approve":         { icon: "✓", cls: "tx-approve" },
+    "Contract invoke": { icon: "⬡", cls: "tx-contract" },
+    "Contract deploy": { icon: "⬡", cls: "tx-contract" },
+    "Send raw tx":     { icon: "→", cls: "tx-raw" },
+  };
+
+  function historyRow(h) {
+    var type = h.type || "Transfer";
+    var meta = TX_TYPE_META[type] || { icon: "·", cls: "tx-default" };
+    // strip filesystem paths from summary, keep only meaningful tokens
+    var summary = (h.summary || "").replace(/\/[^\s]*/g, function(p) {
+      var base = p.split("/").pop();
+      return base || p;
+    });
+    var ts = (h.createdAt || "").replace(" UTC", "").replace("T", " ").replace(/\.\d+Z$/, "");
+    return '<div class="tx-row">' +
+      '<span class="tx-icon ' + meta.cls + '">' + meta.icon + '</span>' +
+      '<div class="tx-body">' +
+        '<span class="tx-type">' + esc(type) + '</span>' +
+        '<span class="tx-summary">' + esc(summary) + '</span>' +
+      '</div>' +
+      '<span class="tx-time">' + esc(ts) + '</span>' +
+    '</div>';
+  }
 
   /* ================================================================
      Init

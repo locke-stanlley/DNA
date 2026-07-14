@@ -1,52 +1,26 @@
 [
   {
     "type": "Transfer",
-    "summary": "1 gas from  to ",
-    "createdAt": "2026-07-14 06:38:46 UTC"
+    "summary": "1 gas \u2192 /workspaces/DNA/wallets/local_wall.dat",
+    "id": 1,
+    "createdAt": "2026-07-14T13:28:00Z"
   },
   {
     "type": "Transfer",
-    "summary": "1 ont from  to ",
-    "createdAt": "2026-07-14 09:36:45 UTC"
+    "summary": "o gas \u2192 ALMVNfjRsCiEjrgVdmV6pP5jgXgw2S28wo",
+    "id": 2,
+    "createdAt": "2026-07-14T13:29:46Z"
   },
   {
     "type": "Transfer",
-    "summary": "1 ont from /workspaces/DNA/wallets/local.dat to /workspaces/DNA/wallets/local_wall.dat",
-    "createdAt": "2026-07-14 09:37:17 UTC"
+    "summary": "o gas \u2192 ALMVNfjRsCiEjrgVdmV6pP5jgXgw2S28wo",
+    "id": 3,
+    "createdAt": "2026-07-14T13:30:02Z"
   },
   {
     "type": "Transfer",
-    "summary": "1 gas from /workspaces/DNA/wallets/local.dat to /workspaces/DNA/wallets/local_wall.dat",
-    "createdAt": "2026-07-14 09:37:28 UTC"
-  },
-  {
-    "type": "Transfer",
-    "summary": "1 gas from /workspaces/DNA/wallets/local.dat to /workspaces/DNA/wallets/local_wall.dat",
-    "createdAt": "2026-07-14 09:37:48 UTC"
-  },
-  {
-    "type": "Contract invoke",
-    "summary": "Invoked contract",
-    "createdAt": "2026-07-14 09:39:27 UTC"
-  },
-  {
-    "type": "Transfer",
-    "summary": "1 gas from /workspaces/DNA/wallets/local.dat to /workspaces/DNA/wallets/local_wall.dat",
-    "createdAt": "2026-07-14 09:40:20 UTC"
-  },
-  {
-    "type": "Transfer",
-    "summary": "1 gas from /workspaces/DNA/wallets/local.dat to /workspaces/DNA/wallets/local_wall.dat",
-    "createdAt": "2026-07-14 09:41:36 UTC"
-  },
-  {
-    "type": "Transfer",
-    "summary": "1 gas from /workspaces/DNA/wallets/local.dat to /workspaces/DNA/wallets/local_wall.dat",
-    "createdAt": "2026-07-14 09:51:01 UTC"
-  },
-  {
-    "type": "Transfer",
-    "summary": "1 gas from  to ",
-    "createdAt": "2026-07-14 10:10:02 UTC"
+    "summary": "1 gas \u2192 ALMVNfjRsCiEjrgVdmV6pP5jgXgw2S28wo",
+    "id": 4,
+    "createdAt": "2026-07-14T13:30:06Z"
   }
 ]
