@@ -5,45 +5,49 @@
     "127.0.0.1:20538",
     "127.0.0.1:20638"
   ],
-  "ConsensusType":"vbft",
-  "VBFT":{
-    "n":4,
-    "c":1,
-    "k":4,
-    "l":64,
-    "block_msg_delay":10000,
-    "hash_msg_delay":10000,
-    "peer_handshake_timeout":10,
-    "max_block_change_view":3000,
-    "admin_ont_id":"did:dna:AMAx993nE6NEqZjwBssUfopxnnvTdob9ij",
-    "min_init_stake":10000,
-    "vrf_value":"1c9810aa9822e511d5804a9c4db9dd08497c31087b0daafa34d768a3253441fa20515e2f30f81741102af0ca3cefc4818fef16adb825fbaa8cad78647f3afb590e",
-    "vrf_proof":"c57741f934042cb8d8b087b44b161db56fc3ffd4ffb675d36cd09f83935be853d8729f3f5298d12d6fd28d45dde515a4b9d7f67682d182ba5118abf451ff1988",
-    "peers":[
+  "ConsensusType": "vbft",
+  "VBFT": {
+    "n": 4,
+    "c": 1,
+    "k": 4,
+    "l": 64,
+    "block_msg_delay": 10000,
+    "hash_msg_delay": 10000,
+    "peer_handshake_timeout": 10,
+    "max_block_change_view": 3000,
+    "admin_ont_id": "did:dna:AMAx993nE6NEqZjwBssUfopxnnvTdob9ij",
+    "min_init_stake": 10000,
+    "vrf_value": "1c9810aa9822e511d5804a9c4db9dd08497c31087b0daafa34d768a3253441fa20515e2f30f81741102af0ca3cefc4818fef16adb825fbaa8cad78647f3afb590e",
+    "vrf_proof": "c57741f934042cb8d8b087b44b161db56fc3ffd4ffb675d36cd09f83935be853d8729f3f5298d12d6fd28d45dde515a4b9d7f67682d182ba5118abf451ff1988",
+    "peers": [
       {
-        "index":1,
-        "peerPubkey":"021819e94bf1519c015d3af65b211e51e45497485851f68087f143ed4ef875dc2d",
-        "address":"ARDRC7826okF5FqoADoh433upmnhoahSTq",
-        "initPos":10000
+        "index": 1,
+        "peerPubkey": "03603f114619cd06c1d04142d2c00a10e8fb3a668245b8105b5c095bf26cd8edde",
+        "address": "AX3LEE3rUhinSjcyW5R6Cz6NZZKA16RTMM",
+        "initPos": 10000
       },
       {
-        "index":2,
-        "peerPubkey":"03a024ccdd1ecaf0e8f098abb52fbcfbfea3fbac62f482f3f8d665549207bf9aeb",
-        "address":"ALMVNfjRsCiEjrgVdmV6pP5jgXgw2S28wo",
-        "initPos":10000
+        "index": 2,
+        "peerPubkey": "02f86ca933f69c4109ea936dff7d8507e41618500dbd376dd72e011afa6ac577be",
+        "address": "ASsynsUiDCmdGSbAMXgyz6uGDc4EKYpuao",
+        "initPos": 10000
       },
       {
-        "index":3,
-        "peerPubkey":"030ac1bc61830888ce47243248b55b198306a842d918ca20217af610f9cef821bf",
-        "address":"Ac72NXUusaje5nX9LNvZCmrfrSGZvGZGF7",
-        "initPos":10000
+        "index": 3,
+        "peerPubkey": "0314556d5690d073d4699d719108b583c72be2c30bda56bbfdd58e21f261cd8ec7",
+        "address": "ARu8bPLsFFgTzUJHs2i8xN5bp6aVF5TnfY",
+        "initPos": 10000
       },
       {
-        "index":4,
-        "peerPubkey":"021be147355177fa0a1c2aecb24817c7d8455ebb8e702dfd71bee9a3dd1d6177d0",
-        "address":"AQG2Sr7KziwgvVkQ1e3GNSB9QJrB4NhbKt",
-        "initPos":10000
+        "index": 4,
+        "peerPubkey": "03929c5ceef5e5211910e04ae309c1b623fcb9b118ebb482cf0d02c028d3ec3a57",
+        "address": "AdQ9w5GTmjDGCyWAAwhusNaTnCzcnqgf4k",
+        "initPos": 10000
       }
     ]
+  },
+  "P2PNode": {
+    "HttpBootstrapServer": "http://127.0.0.1:8090",
+    "DnsSeeders": []
   }
 }

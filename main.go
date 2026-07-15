@@ -39,6 +39,7 @@ import (
 	"github.com/DNAProject/DNA/common/config"
 	"github.com/DNAProject/DNA/common/log"
 	"github.com/DNAProject/DNA/consensus"
+	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/DNAProject/DNA/core/genesis"
 	"github.com/DNAProject/DNA/core/ledger"
 	"github.com/DNAProject/DNA/events"
@@ -58,7 +59,6 @@ import (
 	"github.com/DNAProject/DNA/validator/stateful"
 	"github.com/DNAProject/DNA/validator/stateless"
 	"github.com/ethereum/go-ethereum/common/fdlimit"
-	"github.com/ontio/ontology-crypto/keypair"
 	alog "github.com/ontio/ontology-eventbus/log"
 	"github.com/urfave/cli"
 )
@@ -76,6 +76,8 @@ func setupAPP() *cli.App {
 		cmd.ContractCommand,
 		cmd.ImportCommand,
 		cmd.ExportCommand,
+		cmd.PruneCommand,
+		cmd.BootstrapCommand,
 		cmd.TxCommond,
 		cmd.SigTxCommand,
 		cmd.MultiSigAddrCommand,
@@ -109,6 +111,8 @@ func setupAPP() *cli.App {
 		utils.NetworkIdFlag,
 		utils.NodePortFlag,
 		utils.HttpInfoPortFlag,
+		utils.HttpBootstrapServerFlag,
+		utils.DnsSeedersFlag,
 		utils.MaxConnInBoundFlag,
 		utils.MaxConnOutBoundFlag,
 		utils.MaxConnInBoundForSingleIPFlag,
@@ -159,6 +163,8 @@ func startDNA(ctx *cli.Context) {
 		log.Errorf("initWallet error: %s", err)
 		return
 	}
+	config.LocalPubKey = hex.EncodeToString(keypair.SerializePublicKey(acc.PublicKey))
+	config.LocalAddress = acc.Address.ToBase58()
 	stateHashHeight := config.GetStateHashCheckHeight(cfg.P2PNode.NetworkId)
 	ldg, err := initLedger(ctx, stateHashHeight)
 	if err != nil {

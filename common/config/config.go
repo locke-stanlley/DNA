@@ -124,6 +124,11 @@ func GetNetworkName(id uint32) string {
 
 var DefConfig = NewBlockchainConfig()
 
+var (
+	LocalPubKey  string
+	LocalAddress string
+)
+
 type GenesisConfig struct {
 	SeedList      []string
 	ConsensusType string
@@ -370,6 +375,8 @@ type P2PNodeConfig struct {
 	MaxConnInBound            uint
 	MaxConnOutBound           uint
 	MaxConnInBoundForSingleIP uint
+	HttpBootstrapServer       string
+	DnsSeeders                []string
 }
 
 type RpcConfig struct {
@@ -433,6 +440,8 @@ func NewBlockchainConfig() *BlockchainConfig {
 			MaxConnInBound:            DEFAULT_MAX_CONN_IN_BOUND,
 			MaxConnOutBound:           DEFAULT_MAX_CONN_OUT_BOUND,
 			MaxConnInBoundForSingleIP: DEFAULT_MAX_CONN_IN_BOUND_FOR_SINGLE_IP,
+			HttpBootstrapServer:       "",
+			DnsSeeders:                make([]string, 0),
 		},
 		Rpc: &RpcConfig{
 			EnableHttpJsonRpc: true,

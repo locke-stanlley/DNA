@@ -31,6 +31,8 @@ import (
 	"github.com/DNAProject/DNA/smartcontract/service/native/gas"
 	params "github.com/DNAProject/DNA/smartcontract/service/native/global_params"
 	"github.com/DNAProject/DNA/smartcontract/service/native/governance"
+	"github.com/DNAProject/DNA/smartcontract/service/native/ont"
+	"github.com/DNAProject/DNA/smartcontract/service/native/upgrade"
 	"github.com/DNAProject/DNA/smartcontract/service/native/utils"
 	"github.com/DNAProject/DNA/smartcontract/service/neovm"
 	vm "github.com/DNAProject/DNA/vm/neovm"
@@ -41,11 +43,13 @@ var (
 )
 
 func init() {
+	ont.InitOnt()
 	gas.InitGas()
 	params.InitGlobalParams()
 	did.Init()
 	auth.Init()
 	governance.InitGovernance()
+	upgrade.InitUpgrade()
 }
 
 func InitBytes(addr common.Address, method string) []byte {

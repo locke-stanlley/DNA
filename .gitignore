@@ -36,3 +36,6 @@ docker/payload
 config.json
 peers.recent
 dnaNode
+node_modules
+dist
+.next

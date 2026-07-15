@@ -134,6 +134,14 @@ var (
 		Usage: "The listening port of http server for viewing node information `<number>`",
 		Value: config.DEFAULT_HTTP_INFO_PORT,
 	}
+	HttpBootstrapServerFlag = cli.StringFlag{
+		Name:  "http-bootstrap-server",
+		Usage: "HTTP bootstrap server base URL for P2P peer discovery (e.g. http://127.0.0.1:8090)",
+	}
+	DnsSeedersFlag = cli.StringFlag{
+		Name:  "dns-seeders",
+		Usage: "Comma-separated DNS seeder hostnames for P2P discovery",
+	}
 	MaxConnInBoundFlag = cli.UintFlag{
 		Name:  "max-conn-in-bound",
 		Usage: "Max connection `<number>` in bound",
@@ -201,6 +209,10 @@ var (
 		Name:   "password,p",
 		Hidden: true,
 		Usage:  "Account `<password>` when blockchain node starts.",
+	}
+	WalletPasswordFlag = cli.StringFlag{
+		Name:  "wallet-password",
+		Usage: "Wallet `<password>` for signing commands (non-interactive)",
 	}
 	AccountAddressFlag = cli.StringFlag{
 		Name:  "account,a",
@@ -488,6 +500,11 @@ var (
 	DisableBroadcastNetTxFlag = cli.BoolFlag{
 		Name:  "disable-broadcast-net-tx",
 		Usage: "Disable broadcast tx from network in tx pool",
+	}
+
+	HexOnlyOutputFlag = cli.BoolFlag{
+		Name:  "hex-only",
+		Usage: "Print only the raw transaction hex (no informational lines)",
 	}
 
 	NonOptionFlag = cli.StringFlag{

@@ -48,6 +48,7 @@ const MAX_SEARCH_HEIGHT uint32 = 100
 const MAX_REQUEST_BODY_SIZE = 1 << 20
 
 type BalanceOfRsp struct {
+	Ont    string `json:"ont"`
 	Gas    string `json:"gas"`
 	Height string `json:"height"`
 }
@@ -279,12 +280,13 @@ func GetBlockInfo(block *types.Block) BlockInfo {
 }
 
 func GetBalance(address common.Address) (*BalanceOfRsp, error) {
-	balances, height, err := GetContractBalance(0, []common.Address{utils.GasContractAddress}, address, true)
+	balances, height, err := GetContractBalance(0, []common.Address{utils.OntContractAddress, utils.GasContractAddress}, address, true)
 	if err != nil {
 		return nil, fmt.Errorf("get balance error:%s", err)
 	}
 	return &BalanceOfRsp{
-		Gas:    fmt.Sprintf("%d", balances[0]),
+		Ont:    fmt.Sprintf("%d", balances[0]),
+		Gas:    fmt.Sprintf("%d", balances[1]),
 		Height: fmt.Sprintf("%d", height),
 	}, nil
 }
@@ -292,7 +294,9 @@ func GetBalance(address common.Address) (*BalanceOfRsp, error) {
 func GetAllowance(asset string, from, to common.Address) (string, error) {
 	var contractAddr common.Address
 	switch strings.ToLower(asset) {
-	case "gas":
+	case "ont":
+		contractAddr = utils.OntContractAddress
+	case "gas", "ong":
 		contractAddr = utils.GasContractAddress
 	default:
 		return "", fmt.Errorf("unsupport asset")

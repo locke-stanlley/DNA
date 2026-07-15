@@ -22,7 +22,11 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
 
 	"github.com/DNAProject/DNA/cmd/utils"
 	"github.com/DNAProject/DNA/common"
@@ -31,6 +35,16 @@ import (
 	"github.com/DNAProject/DNA/smartcontract/service/native/governance"
 	"github.com/urfave/cli"
 )
+
+type genesisConfigFile struct {
+	config.GenesisConfig
+	P2PNode *p2pNodeFileConfig `json:"P2PNode"`
+}
+
+type p2pNodeFileConfig struct {
+	HttpBootstrapServer string   `json:"HttpBootstrapServer"`
+	DnsSeeders          []string `json:"DnsSeeders"`
+}
 
 func SetBlockchainConfig(ctx *cli.Context) (*config.BlockchainConfig, error) {
 	cfg := config.DefConfig
@@ -71,17 +85,46 @@ func setGenesis(ctx *cli.Context, cfg *config.BlockchainConfig) error {
 	}
 
 	genesisFile := ctx.String(utils.GetFlagName(utils.ConfigFlag))
-	if !common.FileExisted(genesisFile) {
-		return fmt.Errorf("load genesis file failed")
+	newGenesisCfg := config.NewGenesisConfig()
+	var fileCfg genesisConfigFile
+	var err error
+
+	if strings.HasPrefix(genesisFile, "http://") || strings.HasPrefix(genesisFile, "https://") {
+		log.Infof("Fetching genesis config from URL: %s", genesisFile)
+		resp, httpErr := http.Get(genesisFile)
+		if httpErr != nil {
+			return fmt.Errorf("fetch genesis from URL %s failed: %s", genesisFile, httpErr)
+		}
+		defer resp.Body.Close()
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return fmt.Errorf("read genesis response body failed: %s", readErr)
+		}
+		err = json.Unmarshal(body, &fileCfg)
+		if err != nil {
+			return fmt.Errorf("unmarshal genesis JSON from URL %s failed: %s (body: %s)", genesisFile, err, string(body))
+		}
+	} else {
+		if !common.FileExisted(genesisFile) {
+			return fmt.Errorf("load genesis file failed")
+		}
+		err = utils.GetJsonObjectFromFile(genesisFile, &fileCfg)
+		if err != nil {
+			return fmt.Errorf("load genesis from %s failed: %s", genesisFile, err)
+		}
 	}
 
-	newGenesisCfg := config.NewGenesisConfig()
-	err := utils.GetJsonObjectFromFile(genesisFile, newGenesisCfg)
-	if err != nil {
-		return fmt.Errorf("load genesis from %s failed: %s", genesisFile, err)
+	*newGenesisCfg = fileCfg.GenesisConfig
+	if fileCfg.P2PNode != nil {
+		if fileCfg.P2PNode.HttpBootstrapServer != "" {
+			cfg.P2PNode.HttpBootstrapServer = fileCfg.P2PNode.HttpBootstrapServer
+		}
+		if len(fileCfg.P2PNode.DnsSeeders) > 0 {
+			cfg.P2PNode.DnsSeeders = fileCfg.P2PNode.DnsSeeders
+		}
 	}
 	cfg.Genesis = newGenesisCfg
-	log.Infof("Load genesis config:%s", genesisFile)
+	log.Infof("Load genesis config success: %s", genesisFile)
 
 	switch cfg.Genesis.ConsensusType {
 	case config.CONSENSUS_TYPE_DBFT:
@@ -129,6 +172,21 @@ func setP2PNodeConfig(ctx *cli.Context, cfg *config.P2PNodeConfig) {
 	cfg.MaxConnInBound = ctx.Uint(utils.GetFlagName(utils.MaxConnInBoundFlag))
 	cfg.MaxConnOutBound = ctx.Uint(utils.GetFlagName(utils.MaxConnOutBoundFlag))
 	cfg.MaxConnInBoundForSingleIP = ctx.Uint(utils.GetFlagName(utils.MaxConnInBoundForSingleIPFlag))
+
+	if ctx.IsSet(utils.GetFlagName(utils.HttpBootstrapServerFlag)) {
+		cfg.HttpBootstrapServer = ctx.String(utils.GetFlagName(utils.HttpBootstrapServerFlag))
+	}
+	if ctx.IsSet(utils.GetFlagName(utils.DnsSeedersFlag)) {
+		raw := ctx.String(utils.GetFlagName(utils.DnsSeedersFlag))
+		seeds := make([]string, 0)
+		for _, s := range strings.Split(raw, ",") {
+			s = strings.TrimSpace(s)
+			if s != "" {
+				seeds = append(seeds, s)
+			}
+		}
+		cfg.DnsSeeders = seeds
+	}
 
 	rsvfile := ctx.String(utils.GetFlagName(utils.ReservedPeersFileFlag))
 	if cfg.ReservedPeersOnly {

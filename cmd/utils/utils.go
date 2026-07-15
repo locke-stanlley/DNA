@@ -30,6 +30,7 @@ import (
 	"math"
 	"math/big"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -84,11 +85,23 @@ func ParseOnt(rawAmount string) uint64 {
 	return ParseAssetAmount(rawAmount, PRECISION_ONT)
 }
 
+// ParseBalanceField parses a balance string from RPC; empty means zero.
+func ParseBalanceField(s string) (uint64, error) {
+	if s == "" {
+		return 0, nil
+	}
+	return strconv.ParseUint(s, 10, 64)
+}
+
 func CheckAssetAmount(asset string, amount uint64) error {
 	switch strings.ToLower(asset) {
-	case "gas":
+	case "gas", "ong":
 		if amount > constants.GAS_TOTAL_SUPPLY {
 			return fmt.Errorf("amount:%d larger than GAS total supply:%d", amount, constants.GAS_TOTAL_SUPPLY)
+		}
+	case "ont":
+		if amount > constants.ONT_TOTAL_SUPPLY {
+			return fmt.Errorf("amount:%d larger than ONT total supply:%d", amount, constants.ONT_TOTAL_SUPPLY)
 		}
 	default:
 		return fmt.Errorf("unknown asset:%s", asset)

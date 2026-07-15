@@ -15,6 +15,17 @@ fi
 
 echo "Stopping any previous local test nodes..."
 pkill -f "dnaNode --config config.json" >/dev/null 2>&1 || true
+pkill -f "dnaNode bootstrap server" >/dev/null 2>&1 || true
+sleep 1
+
+BOOTSTRAP_LISTEN="${DNA_BOOTSTRAP_LISTEN:-0.0.0.0:8090}"
+BOOTSTRAP_URL="${DNA_BOOTSTRAP_URL:-http://127.0.0.1:8090}"
+BOOTSTRAP_SEEDS="127.0.0.1:20338,127.0.0.1:20438,127.0.0.1:20538,127.0.0.1:20638"
+
+echo "Starting HTTP bootstrap server on ${BOOTSTRAP_LISTEN}..."
+nohup "$BIN" bootstrap server \
+  --listen "$BOOTSTRAP_LISTEN" \
+  --seeds "$BOOTSTRAP_SEEDS" > "$ROOT_DIR/bootstrap.log" 2>&1 &
 sleep 1
 
 for i in 1 2 3 4; do
@@ -34,6 +45,7 @@ done
 for i in 1 2 3 4; do
   python3 - <<'PY' "$ROOT_DIR/node${i}/config.json"
 import json
+import os
 import sys
 path = sys.argv[1]
 with open(path) as f:
@@ -45,6 +57,9 @@ if 'SeedList' in data:
         '127.0.0.1:20538',
         '127.0.0.1:20638',
     ]
+if 'P2PNode' not in data:
+    data['P2PNode'] = {}
+data['P2PNode']['HttpBootstrapServer'] = os.environ.get('DNA_BOOTSTRAP_URL', 'http://127.0.0.1:8090')
 with open(path, 'w') as f:
     json.dump(data, f, indent=2)
     f.write('\n')
@@ -111,3 +126,8 @@ for rpcport in 20336 20436 20536 20636; do
 
 echo "To stop all nodes, run:"
 echo "  pkill -f 'dnaNode --config config.json' || true"
+echo "  pkill -f 'dnaNode bootstrap server' || true"
+echo
+echo "Bootstrap server: ${BOOTSTRAP_URL} (log: $ROOT_DIR/bootstrap.log)"
+echo "  curl -s ${BOOTSTRAP_URL}/peers | jq ."
+echo "  curl -s ${BOOTSTRAP_URL}/status | jq ."

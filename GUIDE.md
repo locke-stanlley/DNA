@@ -113,9 +113,38 @@ Use `127.0.0.1` (not `127.0.0.01`) for loopback seeds.
       { "index": 3, "peerPubkey": "<node3-pubkey>", "address": "<node3-address>", "initPos": 10000 },
       { "index": 4, "peerPubkey": "<node4-pubkey>", "address": "<node4-address>", "initPos": 10000 }
     ]
+  },
+  "P2PNode": {
+    "HttpBootstrapServer": "http://127.0.0.1:8090"
   }
 }
 ```
+
+**HttpBootstrapServer** is the base URL (no `/peers` suffix). Nodes call `POST /register?port=<p2p-port>` on startup and `GET /peers` periodically.
+
+### Step 4b — HTTP Bootstrap Server (optional, recommended)
+
+Run the standalone peer-discovery server before or alongside your nodes:
+
+```bash
+# Terminal 0 — bootstrap server
+cd /workspaces/DNA
+./dnaNode bootstrap server \
+  --listen 0.0.0.0:8090 \
+  --seeds 127.0.0.1:20338,127.0.0.1:20438,127.0.0.1:20538,127.0.0.1:20638
+
+# Verify
+curl -s http://127.0.0.1:8090/peers | jq .
+curl -s http://127.0.0.1:8090/status | jq .
+```
+
+Or use the all-in-one test script (starts bootstrap + 4 nodes):
+
+```bash
+./scripts/run_multi_node_test.sh
+```
+
+Nodes still connect via `SeedList` and DHT; the bootstrap server adds dynamic peer discovery and registration.
 
 Copy the updated config to each node directory:
 ```bash
@@ -210,34 +239,19 @@ cd /workspaces/DNA
 
 cat tx.raw   # should be a long hex string
 
-# 2. Sign the transaction (uses Python PTY to supply password non-interactively)
-python3 - <<'EOF'
-import pty, os, select, subprocess
-RAW_TX = open('tx.raw').read().strip()
-cmd = ['./dnaNode', 'sigtx',
-       '--wallet', 'node1/wallet.dat',
-       '--account', 'ARDRC7826okF5FqoADoh433upmnhoahSTq',
-       '--rpcport', '20336', RAW_TX]
-master, slave = pty.openpty()
-p = subprocess.Popen(cmd, stdin=slave, stdout=slave, stderr=slave)
-os.close(slave)
-out = b''; sent = False
-while True:
-    r, _, _ = select.select([master], [], [], 5)
-    if not r: break
-    try: chunk = os.read(master, 4096)
-    except OSError: break
-    out += chunk
-    if not sent and b'Password' in out:
-        os.write(master, b'123456\n'); sent = True
-p.wait(); os.close(master)
-lines = [l for l in out.decode(errors='ignore').splitlines() if l.strip() and 'Password' not in l]
-print(lines[-1])
-EOF
-# Redirect output to tx.signed:
-# python3 sign_helper.py > tx.signed
+# 2. Sign the transaction (non-interactive — recommended)
+./dnaNode sigtx \
+  --wallet node1/wallet.dat \
+  --account ARDRC7826okF5FqoADoh433upmnhoahSTq \
+  --wallet-password 123456 \
+  --hex-only \
+  --rpcport 20336 \
+  "$(cat tx.raw)" > tx.signed
 
-# 3. Send the signed transaction
+# Alternative: interactive password prompt (do NOT redirect stdout unless using --hex-only)
+# ./dnaNode sigtx --wallet node1/wallet.dat --account <ADDR> --rpcport 20336 "$(cat tx.raw)"
+
+# 3. Send the signed transaction (sendtx auto-extracts hex if info lines are present)
 ./dnaNode sendtx --rpcport 20336 "$(cat tx.signed)"
 ```
 
@@ -361,7 +375,6 @@ curl -s -X POST http://127.0.0.1:20336 \
   --author "dev" \
   --email "dev@example.com" \
   --desc "Test contract" \
-  --needstore true \
   --gaslimit 20000000 \
   --gasprice 0
 ```
@@ -399,7 +412,7 @@ curl -s -X POST http://127.0.0.1:20336 \
   --endheight 100
 
 # Import blocks from a file
-./dnaNode import --importfile Blocks_0_100.dat --rpcport 20336
+./dnaNode import --importfile Blocks_0_100.dat --data-dir node1/Chain --config node1/config.json
 ```
 
 ---
@@ -418,17 +431,26 @@ curl -s -X POST http://127.0.0.1:20336 \
 
 The signing server exposes an HTTP API for signing transactions without exposing the wallet password to callers.
 
+### Step 1: Import the wallet accounts into the signing server's database
 ```bash
-# Start the signing server
-./dnaNode sigsvr \
-  --wallet node1/wallet.dat \
-  --password 123456 \
-  --port 20000
+./tools/sigsvr import \
+  --walletdir node1/sig_wallet \
+  --wallet node1/wallet.dat
+```
 
-# Sign a raw transaction via HTTP
+### Step 2: Start the signing server
+```bash
+./tools/sigsvr \
+  --walletdir node1/sig_wallet \
+  --cliport 20000
+```
+
+### Step 3: Sign a raw transaction via HTTP
+Pass the account address (`account`) and password (`pwd`) in the root level of the JSON payload:
+```bash
 curl -s -X POST http://127.0.0.1:20000/api/v1/sigrawtx \
   -H 'Content-Type: application/json' \
-  -d '{"qid":"1","method":"sigrawtx","params":{"raw_tx":"<hex>"}}'
+  -d '{"qid":"1","method":"sigrawtx","account":"ARDRC7826okF5FqoADoh433upmnhoahSTq","pwd":"123456","params":{"raw_tx":"<hex>"}}'
 ```
 
 ---
@@ -517,7 +539,7 @@ Open `http://localhost:8080` in your browser.
 |---------|-------|-----|
 | `CurrentBlockHeight = 0` forever | `--enable-consensus` missing | Restart nodes with `--enable-consensus` |
 | `decrypt private key error: invalid argument` | Wrong wallet password | Pass correct `--password` |
-| `INVALID PARAMS (42002)` on sendtx | `tx.signed` is empty or contains error text | Re-run sigtx; check password |
+| `INVALID PARAMS (42002)` on sendtx | `tx.signed` contains info lines or password prompt text, not pure hex | Use `sigtx --wallet-password <pw> --hex-only`; `sendtx` also strips non-hex lines |
 | `balance insufficient` | Address has 0 GAS | Use testmode or fund from genesis account |
 | `unsupport asset:ONG` / `unsupport asset:ont` | Only `gas` is valid for `buildtx transfer` | Use `--asset gas` |
 | `flag provided but not defined: -address` | Wrong flag syntax for `asset balance` | Pass address as positional arg: `asset balance <address>` |

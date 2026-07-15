@@ -23,7 +23,6 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/DNAProject/DNA/account"
@@ -109,6 +108,52 @@ var AssetCommand = cli.Command{
 				utils.ApproveAssetFlag,
 				utils.ApproveAssetFromFlag,
 				utils.ApproveAssetToFlag,
+				utils.WalletFileFlag,
+			},
+		},
+		{
+			Action:    stakeCmd,
+			Name:      "stake",
+			Usage:     "Stake tokens for validator registration",
+			Flags: []cli.Flag{
+				utils.RPCPortFlag,
+				utils.TransactionGasPriceFlag,
+				utils.TransactionGasLimitFlag,
+				cli.StringFlag{
+					Name:  "pubkey",
+					Usage: "Validator public key",
+				},
+				cli.StringFlag{
+					Name:  "from",
+					Usage: "Account to pay stake and sign",
+				},
+				cli.Uint64Flag{
+					Name:  "amount",
+					Usage: "Amount to stake",
+				},
+				utils.WalletFileFlag,
+			},
+		},
+		{
+			Action:    unstakeCmd,
+			Name:      "unstake",
+			Usage:     "Unstake tokens from validator registration",
+			Flags: []cli.Flag{
+				utils.RPCPortFlag,
+				utils.TransactionGasPriceFlag,
+				utils.TransactionGasLimitFlag,
+				cli.StringFlag{
+					Name:  "pubkey",
+					Usage: "Validator public key",
+				},
+				cli.StringFlag{
+					Name:  "from",
+					Usage: "Account to receive unstake and sign",
+				},
+				cli.Uint64Flag{
+					Name:  "amount",
+					Usage: "Amount to unstake",
+				},
 				utils.WalletFileFlag,
 			},
 		},
@@ -217,11 +262,16 @@ func getBalance(ctx *cli.Context) error {
 		return err
 	}
 
-	gas, err := strconv.ParseUint(balance.Gas, 10, 64)
+	ont, err := utils.ParseBalanceField(balance.Ont)
+	if err != nil {
+		return err
+	}
+	gas, err := utils.ParseBalanceField(balance.Gas)
 	if err != nil {
 		return err
 	}
 	PrintInfoMsg("BalanceOf:%s", accAddr)
+	PrintInfoMsg("  ONT:%s", utils.FormatOnt(ont))
 	PrintInfoMsg("  GAS:%s", utils.FormatOng(gas))
 	return nil
 }
@@ -252,12 +302,18 @@ func getAllowance(ctx *cli.Context) error {
 		return err
 	}
 	switch strings.ToLower(asset) {
-	case "gas":
-		balance, err := strconv.ParseUint(balanceStr, 10, 64)
+	case "gas", "ong":
+		balance, err := utils.ParseBalanceField(balanceStr)
 		if err != nil {
 			return err
 		}
 		balanceStr = utils.FormatOng(balance)
+	case "ont":
+		balance, err := utils.ParseBalanceField(balanceStr)
+		if err != nil {
+			return err
+		}
+		balanceStr = utils.FormatOnt(balance)
 	default:
 		return fmt.Errorf("unsupport asset:%s", asset)
 	}
@@ -292,12 +348,14 @@ func approve(ctx *cli.Context) error {
 	}
 	var amount uint64
 	switch strings.ToLower(asset) {
+	case "gas", "ong":
+		amount = utils.ParseOng(amountStr)
+		amountStr = utils.FormatOng(amount)
+		asset = utils.ASSET_GAS
 	case "ont":
 		amount = utils.ParseOnt(amountStr)
 		amountStr = utils.FormatOnt(amount)
-	case "ong":
-		amount = utils.ParseOng(amountStr)
-		amountStr = utils.FormatOng(amount)
+		asset = utils.ASSET_ONT
 	default:
 		return fmt.Errorf("unsupport asset:%s", asset)
 	}
@@ -381,12 +439,14 @@ func transferFrom(ctx *cli.Context) error {
 
 	var amount uint64
 	switch strings.ToLower(asset) {
+	case "gas", "ong":
+		amount = utils.ParseOng(amountStr)
+		amountStr = utils.FormatOng(amount)
+		asset = utils.ASSET_GAS
 	case "ont":
 		amount = utils.ParseOnt(amountStr)
 		amountStr = utils.FormatOnt(amount)
-	case "ong":
-		amount = utils.ParseOng(amountStr)
-		amountStr = utils.FormatOng(amount)
+		asset = utils.ASSET_ONT
 	default:
 		return fmt.Errorf("unsupport asset:%s", asset)
 	}
@@ -429,10 +489,82 @@ func transferFrom(ctx *cli.Context) error {
 	PrintInfoMsg("  Asset:%s", asset)
 	PrintInfoMsg("  Sender:%s", sendAddr)
 	PrintInfoMsg("  From:%s", fromAddr)
-	PrintInfoMsg("  To:%s", toAddr)
-	PrintInfoMsg("  Amount:%s", amountStr)
 	PrintInfoMsg("  TxHash:%s", txHash)
 	PrintInfoMsg("\nTip:")
 	PrintInfoMsg("  Using './dnaNode info status %s' to query transaction status.", txHash)
+	return nil
+}
+
+func stakeCmd(ctx *cli.Context) error {
+	SetRpcPort(ctx)
+	pubkey := ctx.String("pubkey")
+	from := ctx.String("from")
+	amount := ctx.Uint64("amount")
+	if pubkey == "" || from == "" || amount == 0 {
+		PrintErrorMsg("Missing pubkey, from, or amount argument.")
+		cli.ShowSubcommandHelp(ctx)
+		return nil
+	}
+	fromAddr, err := cmdcom.ParseAddress(from, ctx)
+	if err != nil {
+		return err
+	}
+	gasPrice := ctx.Uint64(utils.TransactionGasPriceFlag.Name)
+	gasLimit := ctx.Uint64(utils.TransactionGasLimitFlag.Name)
+
+	networkId, err := utils.GetNetworkId()
+	if err != nil {
+		return err
+	}
+	if networkId == config.NETWORK_ID_SOLO_NET {
+		gasPrice = 0
+	}
+
+	signer, err := cmdcom.GetAccount(ctx, fromAddr)
+	if err != nil {
+		return err
+	}
+	txHash, err := utils.Stake(gasPrice, gasLimit, signer, pubkey, uint32(amount))
+	if err != nil {
+		return fmt.Errorf("stake error:%s", err)
+	}
+	PrintInfoMsg("Stake transaction sent: %s", txHash)
+	return nil
+}
+
+func unstakeCmd(ctx *cli.Context) error {
+	SetRpcPort(ctx)
+	pubkey := ctx.String("pubkey")
+	from := ctx.String("from")
+	amount := ctx.Uint64("amount")
+	if pubkey == "" || from == "" || amount == 0 {
+		PrintErrorMsg("Missing pubkey, from, or amount argument.")
+		cli.ShowSubcommandHelp(ctx)
+		return nil
+	}
+	fromAddr, err := cmdcom.ParseAddress(from, ctx)
+	if err != nil {
+		return err
+	}
+	gasPrice := ctx.Uint64(utils.TransactionGasPriceFlag.Name)
+	gasLimit := ctx.Uint64(utils.TransactionGasLimitFlag.Name)
+
+	networkId, err := utils.GetNetworkId()
+	if err != nil {
+		return err
+	}
+	if networkId == config.NETWORK_ID_SOLO_NET {
+		gasPrice = 0
+	}
+
+	signer, err := cmdcom.GetAccount(ctx, fromAddr)
+	if err != nil {
+		return err
+	}
+	txHash, err := utils.Unstake(gasPrice, gasLimit, signer, pubkey, uint32(amount))
+	if err != nil {
+		return fmt.Errorf("unstake error:%s", err)
+	}
+	PrintInfoMsg("Unstake transaction sent: %s", txHash)
 	return nil
 }

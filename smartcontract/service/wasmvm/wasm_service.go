@@ -109,15 +109,20 @@ func (this *WasmVmService) Invoke() (interface{}, error) {
 	host := &Runtime{Service: this, Input: contract.Args}
 
 	var compiled *exec.CompiledModule
-	if CodeCache != nil {
-		cached, ok := CodeCache.Get(contract.Address.ToHexString())
-		if ok {
-			compiled = cached.(*exec.CompiledModule)
+	// First check the bytecode-hash-keyed GlobalWasmCache (content-addressed, survives upgrades)
+	compiled = GlobalWasmCache.Get(wasmCode)
+	if compiled == nil {
+		// Fall back to address-keyed CodeCache
+		if CodeCache != nil {
+			cached, ok := CodeCache.Get(contract.Address.ToHexString())
+			if ok {
+				compiled = cached.(*exec.CompiledModule)
+			}
 		}
 	}
 
 	if compiled == nil {
-		compiled, err = ReadWasmModule(wasmCode, false)
+		compiled, err = ReadWasmModuleCached(wasmCode, false)
 		if err != nil {
 			return nil, err
 		}

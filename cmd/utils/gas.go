@@ -29,7 +29,6 @@ import (
 	"io"
 	"math/rand"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -51,11 +50,13 @@ import (
 
 const (
 	VERSION_TRANSACTION    = byte(0)
+	VERSION_CONTRACT_ONT   = byte(0)
 	VERSION_CONTRACT_GAS   = byte(0)
 	CONTRACT_TRANSFER      = "transfer"
 	CONTRACT_TRANSFER_FROM = "transferFrom"
 	CONTRACT_APPROVE       = "approve"
 
+	ASSET_ONT = "ont"
 	ASSET_GAS = "gas"
 )
 
@@ -88,8 +89,10 @@ func GetAccountBalance(address, asset string) (uint64, error) {
 	}
 	var balance uint64
 	switch strings.ToLower(asset) {
-	case "gas":
-		balance, err = strconv.ParseUint(balances.Gas, 10, 64)
+	case "ont":
+		balance, err = ParseBalanceField(balances.Ont)
+	case "gas", "ong":
+		balance, err = ParseBalanceField(balances.Gas)
 	default:
 		return 0, fmt.Errorf("unsupport asset:%s", asset)
 	}
@@ -191,6 +194,9 @@ func ApproveTx(gasPrice, gasLimit uint64, asset string, from, to string, amount 
 	var version byte
 	var contractAddr common.Address
 	switch strings.ToLower(asset) {
+	case ASSET_ONT:
+		version = VERSION_CONTRACT_ONT
+		contractAddr = utils.OntContractAddress
 	case ASSET_GAS:
 		version = VERSION_CONTRACT_GAS
 		contractAddr = utils.GasContractAddress
@@ -223,6 +229,9 @@ func TransferTx(gasPrice, gasLimit uint64, asset, from, to string, amount uint64
 	var version byte
 	var contractAddr common.Address
 	switch strings.ToLower(asset) {
+	case ASSET_ONT:
+		version = VERSION_CONTRACT_ONT
+		contractAddr = utils.OntContractAddress
 	case ASSET_GAS:
 		version = VERSION_CONTRACT_GAS
 		contractAddr = utils.GasContractAddress
@@ -259,6 +268,9 @@ func TransferFromTx(gasPrice, gasLimit uint64, asset, sender, from, to string, a
 	var version byte
 	var contractAddr common.Address
 	switch strings.ToLower(asset) {
+	case ASSET_ONT:
+		version = VERSION_CONTRACT_ONT
+		contractAddr = utils.OntContractAddress
 	case ASSET_GAS:
 		version = VERSION_CONTRACT_GAS
 		contractAddr = utils.GasContractAddress
@@ -845,3 +857,78 @@ func ParseWasmVMContractReturnTypeBool(hexStr string) (bool, error) {
 	bf := bytes.NewBuffer(hexbs)
 	return serialization.ReadBool(bf)
 }
+
+func Stake(gasPrice, gasLimit uint64, signer *account.Account, pubkey string, amount uint32) (string, error) {
+	mutable, err := StakeTx(gasPrice, gasLimit, pubkey, signer.Address.ToBase58(), amount)
+	if err != nil {
+		return "", err
+	}
+	err = SignTransaction(signer, mutable)
+	if err != nil {
+		return "", fmt.Errorf("SignTransaction error:%s", err)
+	}
+	tx, err := mutable.IntoImmutable()
+	if err != nil {
+		return "", fmt.Errorf("convert immutable transaction error:%s", err)
+	}
+	txHash, err := SendRawTransaction(tx)
+	if err != nil {
+		return "", fmt.Errorf("SendTransaction error:%s", err)
+	}
+	return txHash, nil
+}
+
+func Unstake(gasPrice, gasLimit uint64, signer *account.Account, pubkey string, amount uint32) (string, error) {
+	mutable, err := UnstakeTx(gasPrice, gasLimit, pubkey, signer.Address.ToBase58(), amount)
+	if err != nil {
+		return "", err
+	}
+	err = SignTransaction(signer, mutable)
+	if err != nil {
+		return "", fmt.Errorf("SignTransaction error:%s", err)
+	}
+	tx, err := mutable.IntoImmutable()
+	if err != nil {
+		return "", fmt.Errorf("convert immutable transaction error:%s", err)
+	}
+	txHash, err := SendRawTransaction(tx)
+	if err != nil {
+		return "", fmt.Errorf("SendTransaction error:%s", err)
+	}
+	return txHash, nil
+}
+
+func StakeTx(gasPrice, gasLimit uint64, pubkey string, address string, amount uint32) (*types.MutableTransaction, error) {
+	addr, err := common.AddressFromBase58(address)
+	if err != nil {
+		return nil, err
+	}
+	sink := common.NewZeroCopySink(nil)
+	sink.WriteString(pubkey)
+	sink.WriteVarBytes(addr[:])
+	sink.WriteVarUint(uint64(amount))
+
+	invokeCode, err := cutils.BuildNativeInvokeCode(utils.GovernanceContractAddress, byte(0), "addInitPos", []interface{}{sink.Bytes()})
+	if err != nil {
+		return nil, err
+	}
+	return NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
+}
+
+func UnstakeTx(gasPrice, gasLimit uint64, pubkey string, address string, amount uint32) (*types.MutableTransaction, error) {
+	addr, err := common.AddressFromBase58(address)
+	if err != nil {
+		return nil, err
+	}
+	sink := common.NewZeroCopySink(nil)
+	sink.WriteString(pubkey)
+	sink.WriteVarBytes(addr[:])
+	sink.WriteVarUint(uint64(amount))
+
+	invokeCode, err := cutils.BuildNativeInvokeCode(utils.GovernanceContractAddress, byte(0), "reduceInitPos", []interface{}{sink.Bytes()})
+	if err != nil {
+		return nil, err
+	}
+	return NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
+}
+

@@ -34,6 +34,7 @@ class Handler(BaseHTTPRequestHandler):
         routes = {
             "/api/health": self._health,
             "/api/blockchain/status": self._blockchain_status,
+            "/api/bootstrap/status": self._bootstrap_status,
             "/api/transaction/history": self._transaction_history,
             "/api/contract/list": self._contract_list,
             "/api/address/book": self._address_book_list,
@@ -86,6 +87,8 @@ class Handler(BaseHTTPRequestHandler):
             "/api/address/book": self._address_book_list,
             "/api/address/add": self._address_book_add,
             "/api/address/remove": self._address_book_remove,
+            "/api/bootstrap/start": self._bootstrap_start,
+            "/api/bootstrap/stop": self._bootstrap_stop,
         }
         if path in routes:
             self._send_json(routes[path]())
@@ -172,6 +175,29 @@ class Handler(BaseHTTPRequestHandler):
         c.append({**item, "id": len(c) + 1, "createdAt": self._now()})
         self._save_json_file(CONTRACTS_PATH, c)
 
+    # ------------------------------------------------------------------ bootstrap
+    def _bootstrap_status(self):
+        import urllib.request
+        url = os.environ.get("DNA_BOOTSTRAP_URL", "http://127.0.0.1:8090")
+        try:
+            with urllib.request.urlopen(f"{url}/status", timeout=3) as resp:
+                return json.loads(resp.read().decode())
+        except Exception as e:
+            return {"ok": False, "online": False, "error": str(e), "url": url}
+
+    def _bootstrap_start(self):
+        listen = os.environ.get("DNA_BOOTSTRAP_LISTEN", "0.0.0.0:8090")
+        seeds = "127.0.0.1:20338,127.0.0.1:20438,127.0.0.1:20538,127.0.0.1:20638"
+        proc = subprocess.Popen(
+            ["./dnaNode", "bootstrap", "server", "--listen", listen, "--seeds", seeds],
+            cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        return {"ok": True, "pid": proc.pid, "listen": listen}
+
+    def _bootstrap_stop(self):
+        subprocess.run(["pkill", "-f", "dnaNode bootstrap server"], cwd=ROOT)
+        return {"ok": True, "message": "Bootstrap server stopped"}
+
     # ------------------------------------------------------------------ health
     def _health(self):
         nodes = []
@@ -216,13 +242,19 @@ class Handler(BaseHTTPRequestHandler):
         fp = data.get("filePath") or ""
         if not fp or not Path(fp).exists():
             return {"ok": False, "error": "Import file not found"}
-        proc = self._run(["./dnaNode", "import", fp])
+        cmd = ["./dnaNode", "import", "--importfile", fp,
+               "--data-dir", os.path.join(ROOT, "Chain"),
+               "--config", os.path.join(ROOT, "config.json")]
+        proc = self._run(cmd)
         return self._fmt(proc)
 
     def _blockchain_export(self):
         data = self._read_json()
         fp = data.get("filePath") or os.path.join(ROOT, "Blocks_export.dat")
-        cmd = ["./dnaNode", "export", str(data.get("startHeight") or "0"), str(data.get("endHeight") or "0"), fp]
+        cmd = ["./dnaNode", "export", "--exportfile", fp,
+               "--startheight", str(data.get("startHeight") or "0"),
+               "--endheight", str(data.get("endHeight") or "0"),
+               "--rpcport", str(self._dr(data))]
         proc = self._run(cmd)
         return {**self._fmt(proc), "filePath": fp}
 
@@ -399,17 +431,18 @@ class Handler(BaseHTTPRequestHandler):
         data = self._read_json()
         raw = data.get("rawTx") or ""
         account = data.get("account") or ""
-        cmd = ["./dnaNode", "sigtx", "--wallet", self._dw(data)]
+        cmd = ["./dnaNode", "sigtx", "--wallet", self._dw(data),
+               "--wallet-password", self._dp(data), "--hex-only"]
         if account:
             cmd += ["--account", account]
         cmd += ["--rpcport", str(self._dr(data)), raw]
-        proc = self._run(cmd, stdin=f"{self._dp(data)}\n")
+        proc = self._run(cmd)
         return self._fmt(proc)
 
     def _transaction_send(self):
         data = self._read_json()
-        proc = self._run(["./dnaNode", "sendtx", data.get("rawTx") or "",
-                          "--rpcport", str(self._dr(data))])
+        raw = (data.get("rawTx") or "").strip()
+        proc = self._run(["./dnaNode", "sendtx", raw, "--rpcport", str(self._dr(data))])
         self._append_history({"type": "Send raw tx", "summary": "Sent raw transaction"})
         return self._fmt(proc)
 
@@ -450,6 +483,7 @@ class Handler(BaseHTTPRequestHandler):
                "--version", str(data.get("version") or "0")]
         proc = self._run(cmd, stdin=f"{self._dp(data)}\n")
         self._append_history({"type": "Contract invoke", "summary": f"Invoked {(addr[:10] + '…') if len(addr) > 10 else (addr or 'contract')}"})
+        return self._fmt(proc)
 
     def _contract_list(self):
         return {"contracts": self._load_json_file(CONTRACTS_PATH)}

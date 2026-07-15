@@ -23,6 +23,8 @@ package cmd
 import (
 	"encoding/hex"
 	"fmt"
+	"os"
+
 	cmdcom "github.com/DNAProject/DNA/cmd/common"
 	"github.com/DNAProject/DNA/cmd/utils"
 	"github.com/DNAProject/DNA/common"
@@ -71,8 +73,10 @@ var SigTxCommand = cli.Command{
 		utils.RPCPortFlag,
 		utils.WalletFileFlag,
 		utils.AccountAddressFlag,
+		utils.WalletPasswordFlag,
 		utils.SendTxFlag,
 		utils.PrepareExecTransactionFlag,
+		utils.HexOnlyOutputFlag,
 	},
 }
 
@@ -266,9 +270,13 @@ func sigToTx(ctx *cli.Context) error {
 	tx.Serialization(&sink)
 
 	rawTx = hex.EncodeToString(sink.Bytes())
-	PrintInfoMsg("RawTx after signed:")
-	PrintInfoMsg(rawTx)
-	PrintInfoMsg("")
+	if ctx.Bool(utils.GetFlagName(utils.HexOnlyOutputFlag)) {
+		fmt.Fprintln(os.Stdout, rawTx)
+	} else {
+		PrintInfoMsg("RawTx after signed:")
+		PrintInfoMsg(rawTx)
+		PrintInfoMsg("")
+	}
 
 	if ctx.IsSet(utils.GetFlagName(utils.PrepareExecTransactionFlag)) {
 		preResult, err := utils.PrepareSendRawTransaction(rawTx)

@@ -35,7 +35,9 @@ import (
 func GetPasswd(ctx *cli.Context) ([]byte, error) {
 	var passwd []byte
 	var err error
-	if ctx.IsSet(utils.GetFlagName(utils.AccountPassFlag)) {
+	if ctx.IsSet(utils.GetFlagName(utils.WalletPasswordFlag)) {
+		passwd = []byte(ctx.String(utils.GetFlagName(utils.WalletPasswordFlag)))
+	} else if ctx.IsSet(utils.GetFlagName(utils.AccountPassFlag)) {
 		passwd = []byte(ctx.String(utils.GetFlagName(utils.AccountPassFlag)))
 	} else {
 		passwd, err = password.GetAccountPassword()

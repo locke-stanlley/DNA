@@ -37,6 +37,7 @@ import (
 	"github.com/DNAProject/DNA/smartcontract/service/native/gas"
 	"github.com/DNAProject/DNA/smartcontract/service/native/global_params"
 	"github.com/DNAProject/DNA/smartcontract/service/native/governance"
+	"github.com/DNAProject/DNA/smartcontract/service/native/ont"
 	nutils "github.com/DNAProject/DNA/smartcontract/service/native/utils"
 	"github.com/DNAProject/DNA/smartcontract/service/neovm"
 	"github.com/ontio/ontology-crypto/keypair"
@@ -50,6 +51,8 @@ const (
 var (
 	GasToken   = newUtilityToken()
 	GASTokenID = GasToken.Hash()
+	OntToken   = newGovernanceToken()
+	ONTTokenID = OntToken.Hash()
 )
 
 var GenBlockTime = (config.DEFAULT_GEN_BLOCK_TIME * time.Second)
@@ -97,6 +100,7 @@ func BuildGenesisBlock(defaultBookkeeper []keypair.PublicKey, genesisConfig *con
 
 	//block
 	gas := newUtilityToken()
+	governanceToken := newGovernanceToken()
 	param := newParamContract()
 	oid := deployOntIDContract()
 	auth := deployAuthContract()
@@ -106,11 +110,13 @@ func BuildGenesisBlock(defaultBookkeeper []keypair.PublicKey, genesisConfig *con
 		Header: genesisHeader,
 		Transactions: []*types.Transaction{
 			gas,
+			governanceToken,
 			param,
 			oid,
 			auth,
 			govConfigTx,
 			newUtilityInit(),
+			newGovernanceInit(),
 			newParamInit(),
 			govConfig,
 		},
@@ -266,6 +272,54 @@ func newGoverConfigInit(config []byte) *types.Transaction {
 	tx, err := mutable.IntoImmutable()
 	if err != nil {
 		panic("construct genesis governing token transaction error ")
+	}
+	return tx
+}
+
+func newGovernanceToken() *types.Transaction {
+	mutable, err := utils.NewDeployTransaction(nutils.OntContractAddress[:], "ONT", "1.0",
+		"DNA Dev Team", "contact@onchain.com", "Blockchain Network Governance Token", payload.NEOVM_TYPE)
+	if err != nil {
+		panic("[NewDeployTransaction] construct genesis governance token transaction error ")
+	}
+	tx, err := mutable.IntoImmutable()
+	if err != nil {
+		panic("construct genesis governance token transaction error ")
+	}
+	return tx
+}
+
+func newGovernanceInit() *types.Transaction {
+	bookkeepers, _ := config.DefConfig.GetBookkeepers()
+
+	var addr common.Address
+	if len(bookkeepers) == 1 {
+		addr = types.AddressFromPubKey(bookkeepers[0])
+	} else {
+		m := (5*len(bookkeepers) + 6) / 7
+		temp, err := types.AddressFromMultiPubKeys(bookkeepers, m)
+		if err != nil {
+			panic(fmt.Sprint("wrong bookkeeper config, caused by", err))
+		}
+		addr = temp
+	}
+
+	distribute := []struct {
+		addr  common.Address
+		value uint64
+	}{{addr, constants.ONT_TOTAL_SUPPLY}}
+
+	args := common.NewZeroCopySink(nil)
+	nutils.EncodeVarUint(args, uint64(len(distribute)))
+	for _, part := range distribute {
+		nutils.EncodeAddress(args, part.addr)
+		nutils.EncodeVarUint(args, part.value)
+	}
+
+	mutable := utils.BuildNativeTransaction(nutils.OntContractAddress, ont.INIT_NAME, args.Bytes())
+	tx, err := mutable.IntoImmutable()
+	if err != nil {
+		panic("construct genesis governance token init transaction error ")
 	}
 	return tx
 }

@@ -50,7 +50,7 @@ func sendTx(ctx *cli.Context) error {
 		cli.ShowSubcommandHelp(ctx)
 		return nil
 	}
-	rawTx := ctx.Args().First()
+	rawTx := normalizeRawTx(ctx.Args().First())
 
 	isPre := ctx.IsSet(utils.GetFlagName(utils.PrepareExecTransactionFlag))
 	if isPre {

@@ -21,10 +21,15 @@
 package bootstrap
 
 import (
+	"fmt"
+	"io"
 	"math/rand"
 	"net"
+	"net/http"
 	"time"
 
+	"github.com/DNAProject/DNA/bootstrapserver"
+	"github.com/DNAProject/DNA/common/config"
 	"github.com/DNAProject/DNA/common/log"
 	"github.com/DNAProject/DNA/p2pserver/common"
 	msgpack "github.com/DNAProject/DNA/p2pserver/message/msg_pack"
@@ -51,7 +56,10 @@ func NewBootstrapService(net p2p.P2P, seeds []string) *BootstrapService {
 }
 
 func (self *BootstrapService) Start() {
+	self.registerSelf()
+	self.queryDynamicSeeds()
 	go self.connectSeedService()
+	go self.heartbeatService()
 }
 
 func (self *BootstrapService) Stop() {
@@ -88,6 +96,7 @@ func (self *BootstrapService) connectSeedService() {
 
 //connectSeeds connect the seeds in seedlist and call for nbr list
 func (self *BootstrapService) connectSeeds() {
+	self.queryDynamicSeeds()
 	seedNodes := make([]string, 0)
 	for _, n := range self.seeds {
 		ip, err := common.ParseIPAddr(n)
@@ -156,4 +165,89 @@ func (this *BootstrapService) reqNbrList(p *peer.Peer) {
 	}
 
 	go this.net.SendTo(id, msg)
+}
+
+func (self *BootstrapService) heartbeatService() {
+	server := config.DefConfig.P2PNode.HttpBootstrapServer
+	if server == "" {
+		return
+	}
+	t := time.NewTicker(2 * time.Minute)
+	defer t.Stop()
+	for {
+		select {
+		case <-t.C:
+			self.registerSelf()
+			self.queryDynamicSeeds()
+		case <-self.quit:
+			return
+		}
+	}
+}
+
+func (self *BootstrapService) registerSelf() {
+	server := config.DefConfig.P2PNode.HttpBootstrapServer
+	if server == "" {
+		return
+	}
+	port := config.DefConfig.P2PNode.NodePort
+	pubkey := config.LocalPubKey
+	address := config.LocalAddress
+	url := fmt.Sprintf("%s/register?port=%d&pubkey=%s&address=%s", server, port, pubkey, address)
+	resp, err := http.Post(url, "application/json", nil)
+	if err != nil {
+		log.Warnf("[p2p] failed to register to http bootstrap server: %v", err)
+		return
+	}
+	resp.Body.Close()
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		log.Infof("[p2p] registered with http bootstrap server %s (port %d, pubkey %s, address %s)", server, port, pubkey, address)
+	} else {
+		log.Warnf("[p2p] http bootstrap register returned status %d", resp.StatusCode)
+	}
+}
+
+func (self *BootstrapService) queryDynamicSeeds() {
+	server := config.DefConfig.P2PNode.HttpBootstrapServer
+	var newSeeds []string
+	if server != "" {
+		resp, err := http.Get(server + "/peers")
+		if err == nil {
+			defer resp.Body.Close()
+			body, readErr := io.ReadAll(resp.Body)
+			if readErr == nil {
+				if peers, parseErr := bootstrapserver.ParsePeerList(body); parseErr == nil {
+					newSeeds = append(newSeeds, peers...)
+					if len(peers) > 0 {
+						log.Debugf("[p2p] fetched %d peers from http bootstrap server", len(peers))
+					}
+				}
+			}
+		} else {
+			log.Warnf("[p2p] failed to query http bootstrap peers: %v", err)
+		}
+	}
+
+	for _, seeder := range config.DefConfig.P2PNode.DnsSeeders {
+		ips, err := net.LookupHost(seeder)
+		if err == nil {
+			port := config.DefConfig.P2PNode.NodePort
+			for _, ip := range ips {
+				newSeeds = append(newSeeds, fmt.Sprintf("%s:%d", ip, port))
+			}
+		}
+	}
+
+	if len(newSeeds) > 0 {
+		seedMap := make(map[string]bool)
+		for _, s := range self.seeds {
+			seedMap[s] = true
+		}
+		for _, s := range newSeeds {
+			if !seedMap[s] {
+				self.seeds = append(self.seeds, s)
+				seedMap[s] = true
+			}
+		}
+	}
 }

@@ -36,6 +36,7 @@ import (
 	"github.com/DNAProject/DNA/common"
 	"github.com/DNAProject/DNA/common/config"
 	"github.com/DNAProject/DNA/common/log"
+	"github.com/DNAProject/DNA/common/serialization"
 	vconfig "github.com/DNAProject/DNA/consensus/vbft/config"
 	"github.com/DNAProject/DNA/core/payload"
 	"github.com/DNAProject/DNA/core/signature"
@@ -650,6 +651,36 @@ func (this *LedgerStoreImp) executeBlock(block *types.Block) (result store.Execu
 		}
 
 		result.Notify = append(result.Notify, notify)
+	}
+
+	// Mint and distribute block reward to NextBookkeeper
+	if block.Header.Height != 0 {
+		cache.Reset()
+		gasContractAddr, _ := common.AddressParseFromBytes([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02})
+		balanceKey := append(append(gasContractAddr[:], byte(1)), block.Header.NextBookkeeper[:]...)
+
+		var currentBal uint64
+		if storeVal, err := cache.Get(balanceKey); err == nil && storeVal != nil {
+			item := new(states.StorageItem)
+			if err := item.Deserialization(common.NewZeroCopySource(storeVal)); err == nil {
+				if v, err := serialization.ReadUint64(bytes.NewBuffer(item.Value)); err == nil {
+					currentBal = v
+				}
+			}
+		}
+
+		rewardAmt := uint64(1000000000)
+		for _, tx := range block.Transactions {
+			rewardAmt += tx.GasPrice * tx.GasLimit
+		}
+
+		newBal := currentBal + rewardAmt
+
+		sink := common.NewZeroCopySink(nil)
+		sink.WriteUint64(newBal)
+		item := &states.StorageItem{Value: sink.Bytes()}
+		cache.Put(balanceKey, item.ToArray())
+		cache.Commit()
 	}
 
 	result.Hash = overlay.ChangeHash()
