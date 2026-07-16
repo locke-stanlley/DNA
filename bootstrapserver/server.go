@@ -212,10 +212,11 @@ func (s *Server) cleanupAndPingLoop() {
 					p.lastSeen = now // update last seen on successful connection
 				} else {
 					fmt.Printf("[bootstrap]   -> Peer %s is UNRESPONSIVE\n", address)
-					if s.static[key] {
-						fmt.Printf("[bootstrap]   -> Keeping static seed %s despite failure.\n", address)
+					if !s.static[key] {
+						fmt.Printf("[bootstrap]   -> Evicting dead peer %s from registry.\n", address)
+						delete(s.peers, key)
 					} else {
-						fmt.Printf("[bootstrap]   -> Keeping peer in registry (relying on TTL for eviction).\n")
+						fmt.Printf("[bootstrap]   -> Keeping static seed %s despite failure.\n", address)
 					}
 				}
 			}
@@ -262,7 +263,11 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	pubkey := r.URL.Query().Get("pubkey")
 	address := r.URL.Query().Get("address")
+	ip := r.URL.Query().Get("ip")
 	host := clientHost(r)
+	if ip != "" {
+		host = ip
+	}
 	s.upsertPeer(host, port, pubkey, address, "register")
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"ok":      true,
@@ -282,7 +287,11 @@ func (s *Server) handleHeartbeat(w http.ResponseWriter, r *http.Request) {
 	}
 	pubkey := r.URL.Query().Get("pubkey")
 	address := r.URL.Query().Get("address")
+	ip := r.URL.Query().Get("ip")
 	host := clientHost(r)
+	if ip != "" {
+		host = ip
+	}
 	s.upsertPeer(host, port, pubkey, address, "heartbeat")
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"ok":      true,

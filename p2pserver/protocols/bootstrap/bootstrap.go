@@ -26,6 +26,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/DNAProject/DNA/bootstrapserver"
@@ -193,7 +194,11 @@ func (self *BootstrapService) registerSelf() {
 	port := config.DefConfig.P2PNode.NodePort
 	pubkey := config.LocalPubKey
 	address := config.LocalAddress
+	regIP := os.Getenv("DNA_REGISTRATION_IP")
 	url := fmt.Sprintf("%s/register?port=%d&pubkey=%s&address=%s", server, port, pubkey, address)
+	if regIP != "" {
+		url = fmt.Sprintf("%s&ip=%s", url, regIP)
+	}
 	resp, err := http.Post(url, "application/json", nil)
 	if err != nil {
 		log.Warnf("[p2p] failed to register to http bootstrap server: %v", err)
@@ -201,7 +206,7 @@ func (self *BootstrapService) registerSelf() {
 	}
 	resp.Body.Close()
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		log.Infof("[p2p] registered with http bootstrap server %s (port %d, pubkey %s, address %s)", server, port, pubkey, address)
+		log.Infof("[p2p] registered with http bootstrap server %s (port %d, pubkey %s, address %s, regIP %s)", server, port, pubkey, address, regIP)
 	} else {
 		log.Warnf("[p2p] http bootstrap register returned status %d", resp.StatusCode)
 	}
