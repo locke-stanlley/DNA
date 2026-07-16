@@ -430,11 +430,16 @@ func (s *Server) handleGenesisConfig(w http.ResponseWriter, r *http.Request) {
 
 	// Dynamically determine the bootstrap server URL based on the request host and protocol headers
 	scheme := "http"
-	isLocal := strings.Contains(r.Host, "localhost") || strings.Contains(r.Host, "127.0.0.1") || strings.Contains(r.Host, "[::1]")
+	host := r.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = r.Host
+	}
+
+	isLocal := strings.Contains(host, "localhost") || strings.Contains(host, "127.0.0.1") || strings.Contains(host, "[::1]")
 	if !isLocal && (r.Header.Get("X-Forwarded-Proto") == "https" || r.TLS != nil) {
 		scheme = "https"
 	}
-	host := r.Host
+
 	if strings.Contains(host, "localhost") {
 		host = strings.Replace(host, "localhost", "127.0.0.1", 1)
 	} else if strings.Contains(host, "[::1]") {
