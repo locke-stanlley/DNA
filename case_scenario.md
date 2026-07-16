@@ -41,15 +41,28 @@ done
 
 ---
 
+### Step 1.5: Dynamically Load User Addresses
+After generating the 10 wallets, run this bash snippet to extract their addresses and assign them to environment variables (`USER1` to `USER10`) so they can be referenced in subsequent commands:
+
+```bash
+# Dynamically extract and assign user addresses
+for i in {1..10}; do
+  addr=$(./dnaNode account list --wallet Wallets/user${i}.dat | grep -o 'Address:[^ ]*' | cut -d: -f2)
+  export USER${i}="$addr"
+  echo "USER${i}=$addr"
+done
+```
+
+---
+
 ### Step 2: Multi-Sig Funding (Validator to User1)
 On network genesis, 100% of the GAS supply (`1,000,000,000` GAS) is allocated to the **4-of-5 Multi-Signature address** (`AWNwv764Dj1BM2KuvRXeVhbGSUqgokrwnJ`) composed of the validator public keys.
 
 We will build a transfer transaction of `500,000` GAS to **User1**, gather signatures from Validator 1, 2, 3, and 4, and broadcast it.
 
 ```bash
-# 1. Set environment variables
+# 1. Set environment variables (USER1 is already loaded in Step 1.5)
 export MULTISIG="AWNwv764Dj1BM2KuvRXeVhbGSUqgokrwnJ"
-export USER1="AXXTe7hLX2TYxC6uEgET8G1emFEKEhFvPg"
 
 # Comm-separated public keys of all 5 validators:
 export VAL_PUBS="03603f114619cd06c1d04142d2c00a10e8fb3a668245b8105b5c095bf26cd8edde,02f86ca933f69c4109ea936dff7d8507e41618500dbd376dd72e011afa6ac577be,0314556d5690d073d4699d719108b583c72be2c30bda56bbfdd58e21f261cd8ec7,03929c5ceef5e5211910e04ae309c1b623fcb9b118ebb482cf0d02c028d3ec3a57,03e4ca87bb7170539c76a6da64900c960f37946e436802b7ba7f69e170c333f3b4"
@@ -83,16 +96,8 @@ export VAL_PUBS="03603f114619cd06c1d04142d2c00a10e8fb3a668245b8105b5c095bf26cd8e
 Now that **User1** has `500,000` GAS, they can act as the network onboarding funder and send `10,000` GAS to each of the other users.
 
 ```bash
-# Define user addresses
-export USER2="APYAXgfNh5Z5UVZub4dbDTQM9kMbfZqzKH"
-export USER3="AetBhxj81AY8T7NixrU21dKwxJ5aP9QhwK"
-export USER4="Aco3jXGWhKnEuiCGhhSDhSrJBryFfZNVzp"
-export USER5="ATALXikws99NmFmhF7YvYp4u1cznVvzu5t"
-export USER6="AWXrKyt1hSrwS1t99zL6LJCdku6xBEHy3i"
-export USER7="AJSkxaYLNdMxPzrxEMpdjTLPU9wRAd3UBT"
-export USER8="ATUugmZ3u17CizKnpQFzhNc9gANwsLuiU4"
-export USER9="AVRuRHRGMMP6S68k26hfGXR3ahpaXpgz84"
-export USER10="AJTay3KcDVBYwFWZhVhWN4zzLS7Q8TjNp3"
+# User addresses USER2 to USER10 are dynamically loaded in Step 1.5.
+# If they are not in your environment, run the Step 1.5 loop first.
 
 # Build, sign, and broadcast transfers from User 1
 for addr in "$USER2" "$USER3" "$USER4" "$USER5" "$USER6" "$USER7" "$USER8" "$USER9" "$USER10"; do
