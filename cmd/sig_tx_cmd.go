@@ -58,6 +58,8 @@ var MultiSigTxCommand = cli.Command{
 		utils.AccountMultiMFlag,
 		utils.AccountMultiPubKeyFlag,
 		utils.AccountAddressFlag,
+		utils.WalletPasswordFlag,
+		utils.HexOnlyOutputFlag,
 		utils.SendTxFlag,
 		utils.PrepareExecTransactionFlag,
 	},
@@ -199,9 +201,13 @@ func multiSigToTx(ctx *cli.Context) error {
 	tx.Serialization(&sink)
 
 	rawTx = hex.EncodeToString(sink.Bytes())
-	PrintInfoMsg("RawTx after multi signed:")
-	PrintInfoMsg(rawTx)
-	PrintInfoMsg("")
+	if ctx.Bool(utils.GetFlagName(utils.HexOnlyOutputFlag)) {
+		fmt.Fprintln(os.Stdout, rawTx)
+	} else {
+		PrintInfoMsg("RawTx after multi signed:")
+		PrintInfoMsg(rawTx)
+		PrintInfoMsg("")
+	}
 
 	if ctx.IsSet(utils.GetFlagName(utils.PrepareExecTransactionFlag)) {
 		preResult, err := utils.PrepareSendRawTransaction(rawTx)
