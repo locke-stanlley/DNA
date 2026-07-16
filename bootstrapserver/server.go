@@ -434,7 +434,13 @@ func (s *Server) handleGenesisConfig(w http.ResponseWriter, r *http.Request) {
 	if !isLocal && (r.Header.Get("X-Forwarded-Proto") == "https" || r.TLS != nil) {
 		scheme = "https"
 	}
-	bootstrapURL := fmt.Sprintf("%s://%s", scheme, r.Host)
+	host := r.Host
+	if strings.Contains(host, "localhost") {
+		host = strings.Replace(host, "localhost", "127.0.0.1", 1)
+	} else if strings.Contains(host, "[::1]") {
+		host = strings.Replace(host, "[::1]", "127.0.0.1", 1)
+	}
+	bootstrapURL := fmt.Sprintf("%s://%s", scheme, host)
 
 	genesisConfig := map[string]interface{}{
 		"SeedList":      seedList,
