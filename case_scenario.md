@@ -56,16 +56,16 @@ done
 ---
 
 ### Step 2: Multi-Sig Funding (Validator to User1)
-On network genesis, 100% of the GAS supply (`1,000,000,000` GAS) is allocated to the **4-of-5 Multi-Signature address** (`AWNwv764Dj1BM2KuvRXeVhbGSUqgokrwnJ`) composed of the validator public keys.
+On network genesis, 100% of the GAS supply (`1,000,000,000` GAS) is allocated to the **3-of-4 Multi-Signature address** (`AJjsw7vr2bWrrskEgrTtBYvuV9zKEPBZht`) composed of the 4 validator public keys.
 
-We will build a transfer transaction of `1,000,000` GAS to **User1**, gather signatures from Validator 1, 2, 3, and 4, and broadcast it.
+We will build a transfer transaction of `1,000,000` GAS to **User1**, gather signatures from Validator 1, 2, and 3, and broadcast it.
 
 ```bash
 # 1. Set environment variables (USER1 is already loaded in Step 1.5)
-export MULTISIG="AWNwv764Dj1BM2KuvRXeVhbGSUqgokrwnJ"
+export MULTISIG="AJjsw7vr2bWrrskEgrTtBYvuV9zKEPBZht"
 
-# Comm-separated public keys of all 5 validators:
-export VAL_PUBS="03603f114619cd06c1d04142d2c00a10e8fb3a668245b8105b5c095bf26cd8edde,02f86ca933f69c4109ea936dff7d8507e41618500dbd376dd72e011afa6ac577be,0314556d5690d073d4699d719108b583c72be2c30bda56bbfdd58e21f261cd8ec7,03929c5ceef5e5211910e04ae309c1b623fcb9b118ebb482cf0d02c028d3ec3a57,03e4ca87bb7170539c76a6da64900c960f37946e436802b7ba7f69e170c333f3b4"
+# Comm-separated public keys of all 4 active validators:
+export VAL_PUBS="02f86ca933f69c4109ea936dff7d8507e41618500dbd376dd72e011afa6ac577be,0314556d5690d073d4699d719108b583c72be2c30bda56bbfdd58e21f261cd8ec7,03603f114619cd06c1d04142d2c00a10e8fb3a668245b8105b5c095bf26cd8edde,03929c5ceef5e5211910e04ae309c1b623fcb9b118ebb482cf0d02c028d3ec3a57"
 
 # 2. Build the unsigned transaction
 ./dnaNode buildtx transfer \
@@ -74,20 +74,16 @@ export VAL_PUBS="03603f114619cd06c1d04142d2c00a10e8fb3a668245b8105b5c095bf26cd8e
 
 # 3. Sign the transaction sequentially across validator wallets
 # Sign with Validator 1
-./dnaNode multisigtx --wallet node1/wallet.dat -m 4 --pubkey "$VAL_PUBS" \
+./dnaNode multisigtx --wallet node1/wallet.dat -m 3 --pubkey "$VAL_PUBS" \
   --wallet-password "123456" --hex-only "$(cat tx.raw)" > tx.sig1
 
 # Sign with Validator 2
-./dnaNode multisigtx --wallet node2/wallet.dat -m 4 --pubkey "$VAL_PUBS" \
+./dnaNode multisigtx --wallet node2/wallet.dat -m 3 --pubkey "$VAL_PUBS" \
   --wallet-password "123456" --hex-only "$(cat tx.sig1)" > tx.sig2
 
-# Sign with Validator 3
-./dnaNode multisigtx --wallet node3/wallet.dat -m 4 --pubkey "$VAL_PUBS" \
-  --wallet-password "123456" --hex-only "$(cat tx.sig2)" > tx.sig3
-
-# Sign with Validator 4 (and broadcast)
-./dnaNode multisigtx --wallet node4/wallet.dat -m 4 --pubkey "$VAL_PUBS" \
-  --wallet-password "123456" --send "$(cat tx.sig3)"
+# Sign with Validator 3 (and broadcast)
+./dnaNode multisigtx --wallet node3/wallet.dat -m 3 --pubkey "$VAL_PUBS" \
+  --wallet-password "123456" --send "$(cat tx.sig2)"
 ```
 
 ---
