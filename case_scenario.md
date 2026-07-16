@@ -146,19 +146,24 @@ Users can now transfer assets between each other to simulate network traffic. Le
 ---
 
 ### Step 5: Deploy the Custom OEP-4 Token Contract (`MyToken`)
-We will deploy the NeoVM bytecode contract file `wasmtest/contracts-cplus/test_oep4.avm`. 
-The deploying account must pay transaction fees and define details:
+The contract deployment command expects the contract code to be a **hex-encoded ASCII string**, not raw binary bytecode. Since `wasmtest/contracts-cplus/test_oep4.avm` is in raw binary format, we must convert it to a hex string file first:
 
+```bash
+# Convert raw binary bytecode to hex-encoded ASCII
+xxd -p -c 0 wasmtest/contracts-cplus/test_oep4.avm | tr -d '\n' > wasmtest/contracts-cplus/test_oep4.hex
+```
+
+Now we deploy the custom contract:
 * **Name**: MyToken
 * **Symbol**: MYT
 * **Decimals**: 8
-* **Owner/Author**: User1 (`AXXTe7hLX2TYxC6uEgET8G1emFEKEhFvPg`)
+* **Owner/Author**: User1
 
 ```bash
 ./dnaNode contract deploy \
   --wallet Wallets/user1.dat --account "$USER1" \
   --vmtype 1 \
-  --code wasmtest/contracts-cplus/test_oep4.avm \
+  --code wasmtest/contracts-cplus/test_oep4.hex \
   --name "MyToken" --version "1.0" \
   --author "$USER1" --email "funder@dna.org" --desc "OEP4 Token Deployment Case Study" \
   --gasprice 0 --gaslimit 20000000 --rpcport 20336
