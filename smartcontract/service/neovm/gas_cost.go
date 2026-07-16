@@ -46,6 +46,16 @@ func GasPrice(gasTable map[string]uint64, engine *vm.Executor, name string) (uin
 	switch name {
 	case STORAGE_PUT_NAME:
 		return StoreGasCost(gasTable, engine)
+	case "Ontology.Runtime.Base58ToAddress":
+		if value, ok := gasTable[RUNTIME_BASE58TOADDRESS_NAME]; ok {
+			return value, nil
+		}
+		return RUNTIME_BASE58TOADDRESS_GAS, nil
+	case "Ontology.Runtime.AddressToBase58":
+		if value, ok := gasTable[RUNTIME_ADDRESSTOBASE58_NAME]; ok {
+			return value, nil
+		}
+		return RUNTIME_ADDRESSTOBASE58_GAS, nil
 	default:
 		if value, ok := gasTable[name]; ok {
 			return value, nil

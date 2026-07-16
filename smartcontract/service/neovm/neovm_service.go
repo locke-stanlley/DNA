@@ -90,6 +90,8 @@ var (
 
 		RUNTIME_BASE58TOADDRESS_NAME:     {Execute: RuntimeBase58ToAddress},
 		RUNTIME_ADDRESSTOBASE58_NAME:     {Execute: RuntimeAddressToBase58},
+		"Ontology.Runtime.Base58ToAddress": {Execute: RuntimeBase58ToAddress},
+		"Ontology.Runtime.AddressToBase58": {Execute: RuntimeAddressToBase58},
 		RUNTIME_GETCURRENTBLOCKHASH_NAME: {Execute: RuntimeGetCurrentBlockHash},
 	}
 )

@@ -39,19 +39,36 @@ for i in {1..10}; do
 done
 ```
 
+> [!NOTE]
+> If wallets already exist, you will see `[ERROR] error creating new account: duplicate label` — this is expected and safe to ignore. The existing wallets will be reused.
+
 ---
 
-### Step 1.5: Dynamically Load User Addresses
-After generating the 10 wallets, run this bash snippet to extract their addresses and assign them to environment variables (`USER1` to `USER10`) so they can be referenced in subsequent commands:
+### Step 1.5: Dynamically Load User Addresses and Hex Hashes
+After generating the 10 wallets, run this bash snippet to extract their addresses and derive the hex script hashes required by smart contract invocations:
 
 ```bash
-# Dynamically extract and assign user addresses
+# Dynamically extract and assign user addresses and hex hashes
 for i in {1..10}; do
   addr=$(./dnaNode account list --wallet Wallets/user${i}.dat | grep -o 'Address:[^ ]*' | cut -d: -f2)
   export USER${i}="$addr"
-  echo "USER${i}=$addr"
+  # Decode Base58 address to raw 20-byte hex script hash (used in contract calls)
+  hex_hash=$(python3 -c "
+ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+def base58_decode(encoded):
+    n = 0
+    for char in encoded:
+        n = n * 58 + ALPHABET.index(char)
+    return n.to_bytes(25, 'big')
+print(base58_decode('$addr')[1:21].hex())
+")
+  export USER${i}_HEX="$hex_hash"
+  echo "USER${i}=$addr (HEX=$hex_hash)"
 done
 ```
+
+> [!IMPORTANT]
+> The `USER_HEX` variables are required for Steps 7 and 8. The `dnaNode` CLI contract invoker passes `string:` params as literal strings, not as address bytes — so `balanceOf` and `transfer` must receive `bytearray:$USERn_HEX` format to match the contract's internal `RuntimeBase58ToAddress` lookup.
 
 ---
 
@@ -64,7 +81,7 @@ We will build a transfer transaction of `1,000,000` GAS to **User1**, gather sig
 # 1. Set environment variables (USER1 is already loaded in Step 1.5)
 export MULTISIG="AJjsw7vr2bWrrskEgrTtBYvuV9zKEPBZht"
 
-# Comm-separated public keys of all 4 active validators:
+# Comma-separated public keys of all 4 active validators (sorted lexicographically):
 export VAL_PUBS="02f86ca933f69c4109ea936dff7d8507e41618500dbd376dd72e011afa6ac577be,0314556d5690d073d4699d719108b583c72be2c30bda56bbfdd58e21f261cd8ec7,03603f114619cd06c1d04142d2c00a10e8fb3a668245b8105b5c095bf26cd8edde,03929c5ceef5e5211910e04ae309c1b623fcb9b118ebb482cf0d02c028d3ec3a57"
 
 # 2. Build the unsigned transaction
@@ -85,6 +102,12 @@ export VAL_PUBS="02f86ca933f69c4109ea936dff7d8507e41618500dbd376dd72e011afa6ac57
 ./dnaNode multisigtx --wallet node3/wallet.dat -m 3 --pubkey "$VAL_PUBS" \
   --wallet-password "123456" --send "$(cat tx.sig2)"
 ```
+
+Verify **User1** received the GAS:
+```bash
+./dnaNode asset balance "$USER1" --rpcport 20336
+```
+> Expected Output: `GAS:1000000`
 
 ---
 
@@ -112,7 +135,7 @@ Verify **User2**'s balance:
 > [!NOTE]
 > It should display:
 > ```text
-> BalanceOf:APYAXgfNh5Z5UVZub4dbDTQM9kMbfZqzKH
+> BalanceOf:AY21bm8nmvF7gw524WguehsT3jucUg1Acb
 >   ONT:0
 >   GAS:10000
 > ```
@@ -142,7 +165,7 @@ Users can now transfer assets between each other to simulate network traffic. Le
 ---
 
 ### Step 5: Deploy the Custom OEP-4 Token Contract (`MyToken`)
-The contract deployment command expects the contract code to be a **hex-encoded ASCII string**, not raw binary bytecode. Since `wasmtest/contracts-cplus/test_oep4.avm` is in raw binary format, we must convert it to a hex string file first:
+The contract deployment command expects the contract code to be a **hex-encoded ASCII string**, not raw binary bytecode. The `.avm` file has already been patched so that the contract owner matches **User1**'s address. Re-generate the `.hex` file from the patched `.avm`:
 
 ```bash
 # Convert raw binary bytecode to hex-encoded ASCII
@@ -167,18 +190,14 @@ Now we deploy the custom contract:
 > [!IMPORTANT]
 > The transaction will succeed and print the deployed **contract address** in the terminal:
 > ```text
-> Deploy contract address: d2f8bc6933f69c4109ea936dff7d8507e4161850 (example hash)
+> Deploy contract:
+>   Contract Address:549cb33a6624197aaed607844718b3b4f8800ce5
+>   TxHash:...
 > ```
-> *Note down this address for the next steps! We will refer to it as `$CONTRACT_ADDR`.*
-
-Deploy contract:
-  Contract Address:f4e089d8fca9f080b9b4209a33972e793279fc06
-  TxHash:5686cf42fd3d23620d3835c9de0039a6be77dc8dc8d5ff2c31b3088986c60b2a
-
 
 ```bash
-# Set your deployed contract address
-export CONTRACT_ADDR="f4e089d8fca9f080b9b4209a33972e793279fc06"
+# Set your deployed contract address (this is deterministic from User1's key + bytecode)
+export CONTRACT_ADDR="549cb33a6624197aaed607844718b3b4f8800ce5"
 ```
 
 ---
@@ -212,11 +231,11 @@ We can invoke the contract in **prepare/pre-execute** mode (which doesn't write 
 > Expected Output: `MyToken`
 
 #### Query User 1 Token Balance:
-To query the balance, we pass the user's address converted to a bytearray or raw hex format.
+The `balanceOf` method takes a raw 20-byte address hash (not a Base58 string). Use the `$USER1_HEX` variable loaded in Step 1.5:
 ```bash
 ./dnaNode contract invoke \
   --wallet Wallets/user1.dat --address "$CONTRACT_ADDR" \
-  --vmtype 1 --params "string:balanceOf,[string:$USER1]" \
+  --vmtype 1 --params "string:balanceOf,[bytearray:$USER1_HEX]" \
   --prepare --return int --rpcport 20336
 ```
 > Expected Output: `1000000000`
@@ -224,15 +243,17 @@ To query the balance, we pass the user's address converted to a bytearray or raw
 ---
 
 ### Step 8: OEP-4 Token Transfers
-Now **User1** transfers `5,000,000` `MYT` tokens directly to **User2** by invoking the `transfer` method:
-`transfer(from_addr, to_addr, amount)`
+Now **User1** transfers `5,000,000` `MYT` tokens directly to **User2** by invoking the `transfer` method.
+
+> [!IMPORTANT]
+> The `transfer` and `balanceOf` methods require raw 20-byte address hashes (the `bytearray:$USERn_HEX` format), **not** Base58 strings. These were computed in Step 1.5.
 
 ```bash
 ./dnaNode contract invoke \
   --wallet Wallets/user1.dat --account "$USER1" \
   --address "$CONTRACT_ADDR" \
   --vmtype 1 \
-  --params "string:transfer,[string:$USER1,string:$USER2,int:5000000]" \
+  --params "string:transfer,[bytearray:$USER1_HEX,bytearray:$USER2_HEX,int:5000000]" \
   --gasprice 0 --gaslimit 200000 --rpcport 20336
 ```
 
@@ -240,7 +261,7 @@ Verify **User2**'s new `MYT` token balance:
 ```bash
 ./dnaNode contract invoke \
   --wallet Wallets/user1.dat --address "$CONTRACT_ADDR" \
-  --vmtype 1 --params "string:balanceOf,[string:$USER2]" \
+  --vmtype 1 --params "string:balanceOf,[bytearray:$USER2_HEX]" \
   --prepare --return int --rpcport 20336
 ```
 > Expected Output: `5000000`
