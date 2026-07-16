@@ -212,11 +212,10 @@ func (s *Server) cleanupAndPingLoop() {
 					p.lastSeen = now // update last seen on successful connection
 				} else {
 					fmt.Printf("[bootstrap]   -> Peer %s is UNRESPONSIVE\n", address)
-					if !s.static[key] {
-						fmt.Printf("[bootstrap]   -> Evicting dead peer %s from registry.\n", address)
-						delete(s.peers, key)
-					} else {
+					if s.static[key] {
 						fmt.Printf("[bootstrap]   -> Keeping static seed %s despite failure.\n", address)
+					} else {
+						fmt.Printf("[bootstrap]   -> Keeping peer in registry (relying on TTL for eviction).\n")
 					}
 				}
 			}
