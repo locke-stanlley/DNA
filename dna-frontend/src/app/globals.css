@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --dna-bg: #050505;
+  --dna-accent: #00e676;
+  --dna-accent-dim: #00c853;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--dna-bg);
+  color: #ffffff;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+@layer components {
+  .dna-shell {
+    @apply bg-dna-shell border border-dna-border rounded-[2rem] p-6 md:p-8 min-h-[calc(100vh-2rem)] shadow-card;
+  }
+  .dna-card {
+    @apply bg-dna-card border border-dna-border rounded-3xl p-5 transition-colors hover:border-dna-accent/20;
+  }
+  .dna-card-inner {
+    @apply bg-dna-surface border border-dna-border rounded-2xl p-4;
+  }
+  .dna-input {
+    @apply w-full bg-dna-surface border border-dna-border rounded-2xl px-4 py-3 text-sm text-white placeholder:text-dna-muted focus:outline-none focus:border-dna-accent/50 focus:ring-1 focus:ring-dna-accent/20 transition-all;
+  }
+  .dna-btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .dna-btn-primary {
+    @apply dna-btn bg-dna-accent text-black hover:bg-dna-accent-dim shadow-glow;
+  }
+  .dna-btn-secondary {
+    @apply dna-btn bg-dna-surface border border-dna-border text-white hover:border-dna-accent/40 hover:text-dna-accent;
+  }
+  .dna-btn-ghost {
+    @apply dna-btn bg-transparent text-dna-muted hover:text-white hover:bg-dna-surface;
+  }
+  .dna-btn-danger {
+    @apply dna-btn bg-dna-red/10 border border-dna-red/30 text-dna-red hover:bg-dna-red/20;
+  }
+  .dna-tab {
+    @apply px-4 py-2 rounded-full text-sm font-medium transition-all;
+  }
+  .dna-tab-active {
+    @apply bg-dna-accent text-black;
+  }
+  .dna-tab-inactive {
+    @apply bg-dna-surface text-dna-muted hover:text-white border border-dna-border;
+  }
+  .dna-stat-up { @apply text-dna-accent; }
+  .dna-stat-down { @apply text-dna-red; }
+}
