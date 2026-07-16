@@ -57,7 +57,7 @@ export VAL_PUBS="03603f114619cd06c1d04142d2c00a10e8fb3a668245b8105b5c095bf26cd8e
 # 2. Build the unsigned transaction
 ./dnaNode buildtx transfer \
   --from "$MULTISIG" --to "$USER1" \
-  --amount 500000 --asset gas --rpcport 20336 2>/dev/null | tail -1 > tx.raw
+  --amount 500000 --asset gas 2>/dev/null | tail -1 > tx.raw
 
 # 3. Sign the transaction sequentially across validator wallets
 # Sign with Validator 1
@@ -98,7 +98,7 @@ export USER10="AJTay3KcDVBYwFWZhVhWN4zzLS7Q8TjNp3"
 for addr in "$USER2" "$USER3" "$USER4" "$USER5" "$USER6" "$USER7" "$USER8" "$USER9" "$USER10"; do
   ./dnaNode buildtx transfer \
     --wallet Wallets/user1.dat --from "$USER1" --to "$addr" \
-    --amount 10000 --asset gas --rpcport 20336 2>/dev/null | tail -1 > tx_transfer.raw
+    --amount 10000 --asset gas 2>/dev/null | tail -1 > tx_transfer.raw
   
   ./dnaNode sigtx --wallet Wallets/user1.dat --wallet-password "123456" --send "$(cat tx_transfer.raw)"
 done
@@ -126,15 +126,15 @@ Users can now transfer assets between each other to simulate network traffic. Le
 
 ```bash
 # 1. User 2 to User 3
-./dnaNode buildtx transfer --wallet Wallets/user2.dat --from "$USER2" --to "$USER3" --amount 500 --asset gas --rpcport 20336 2>/dev/null | tail -1 > p2p.raw
+./dnaNode buildtx transfer --wallet Wallets/user2.dat --from "$USER2" --to "$USER3" --amount 500 --asset gas 2>/dev/null | tail -1 > p2p.raw
 ./dnaNode sigtx --wallet Wallets/user2.dat --wallet-password "123456" --send "$(cat p2p.raw)"
 
 # 2. User 3 to User 4
-./dnaNode buildtx transfer --wallet Wallets/user3.dat --from "$USER3" --to "$USER4" --amount 300 --asset gas --rpcport 20336 2>/dev/null | tail -1 > p2p.raw
+./dnaNode buildtx transfer --wallet Wallets/user3.dat --from "$USER3" --to "$USER4" --amount 300 --asset gas 2>/dev/null | tail -1 > p2p.raw
 ./dnaNode sigtx --wallet Wallets/user3.dat --wallet-password "123456" --send "$(cat p2p.raw)"
 
 # 3. User 4 to User 5
-./dnaNode buildtx transfer --wallet Wallets/user4.dat --from "$USER4" --to "$USER5" --amount 200 --asset gas --rpcport 20336 2>/dev/null | tail -1 > p2p.raw
+./dnaNode buildtx transfer --wallet Wallets/user4.dat --from "$USER4" --to "$USER5" --amount 200 --asset gas 2>/dev/null | tail -1 > p2p.raw
 ./dnaNode sigtx --wallet Wallets/user4.dat --wallet-password "123456" --send "$(cat p2p.raw)"
 ```
 
