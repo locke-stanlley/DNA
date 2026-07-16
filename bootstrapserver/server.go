@@ -428,12 +428,19 @@ func (s *Server) handleGenesisConfig(w http.ResponseWriter, r *http.Request) {
 		"peers":                  peers,
 	}
 
+	// Dynamically determine the bootstrap server URL based on the request host and protocol headers
+	scheme := "http"
+	if r.Header.Get("X-Forwarded-Proto") == "https" || r.TLS != nil {
+		scheme = "https"
+	}
+	bootstrapURL := fmt.Sprintf("%s://%s", scheme, r.Host)
+
 	genesisConfig := map[string]interface{}{
 		"SeedList":      seedList,
 		"ConsensusType": "vbft",
 		"VBFT":          vbft,
 		"P2PNode": map[string]interface{}{
-			"HttpBootstrapServer": "http://127.0.0.1:8090",
+			"HttpBootstrapServer": bootstrapURL,
 			"DnsSeeders":          []string{},
 		},
 	}
