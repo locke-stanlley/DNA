@@ -12,16 +12,16 @@ Here are the 10 simulated users, including their wallet filenames, addresses, pu
 
 | User Label | Wallet File | Base58 Wallet Address | Public Key Hex |
 | :--- | :--- | :--- | :--- |
-| **User1 (Funder/Owner)** | `user1.dat` | `AXXTe7hLX2TYxC6uEgET8G1emFEKEhFvPg` | `02f218da3ad51a1b1e9be3b477660ca401e329966f72267d74c304664dcba4d01f` |
-| **User2** | `user2.dat` | `APYAXgfNh5Z5UVZub4dbDTQM9kMbfZqzKH` | `02ff1dbd76598ea531e4ca3efa02dc79c20e23d40d94d1d0721410ecdbf105cddc` |
-| **User3** | `user3.dat` | `AetBhxj81AY8T7NixrU21dKwxJ5aP9QhwK` | `02288bb2056baf22484bdae1c39c428b8ad119cc7e8d26e8bb1fb388d593ca08d6` |
-| **User4** | `user4.dat` | `Aco3jXGWhKnEuiCGhhSDhSrJBryFfZNVzp` | `0282ce614ebd9fb3937897f65eba064fb808a8c41881b111161847bd2cf66b0d39` |
-| **User5** | `user5.dat` | `ATALXikws99NmFmhF7YvYp4u1cznVvzu5t` | `02dec28fb595ecf6f82fcf928c2f3c5f927b307a07e44c1d5dc881352983d738e6` |
-| **User6** | `user6.dat` | `AWXrKyt1hSrwS1t99zL6LJCdku6xBEHy3i` | `02c894aa6d78b2faac6591207bec02a7bc092f200f4b3ec2569c439cd45aa58b00` |
-| **User7** | `user7.dat` | `AJSkxaYLNdMxPzrxEMpdjTLPU9wRAd3UBT` | `03ae61c9815663a6200855092fcc8133dd03a062bb96c28685ca81422bd7b52537` |
-| **User8** | `user8.dat` | `ATUugmZ3u17CizKnpQFzhNc9gANwsLuiU4` | `03987eb01b6db2da96a350e40825ed4f64f378880282a3d8d575c0814ebd24bc6b` |
-| **User9** | `user9.dat` | `AVRuRHRGMMP6S68k26hfGXR3ahpaXpgz84` | `02c0b2f88ee5d2c977adf9ec3e35188af5741469ec0bd1b778f61e7ff2ca90f0c3` |
-| **User10** | `user10.dat` | `AJTay3KcDVBYwFWZhVhWN4zzLS7Q8TjNp3` | `03e28181cc26891c43d56be011afff35fc46f317a275ddd79af2c09e28e9d01d22` |
+| **User1 (Funder/Owner)** | `user1.dat` | `ALAR4FTotsZ49v2YiJrmQFAScnWo6pbvJ2` | `03cdbe30c51fca13ec47b60195ebb67e515deac322811d0bf6bdb2023370ef4038` |
+| **User2** | `user2.dat` | `AY21bm8nmvF7gw524WguehsT3jucUg1Acb` | `033deda891d965d0d705fcdf619948419148d0eae5be56e37022e2d1d42a443c29` |
+| **User3** | `user3.dat` | `AMuxFXYe3kpNoyzWACrcEbVcESDB1sm1Fp` | `023cbc9302d0e3b070b96225207d022c20a66d5aeed3c3d7b9b34bca709c164db3` |
+| **User4** | `user4.dat` | `AGkMPFsA2detc5DVV9P24dHUwduRNGtXhA` | `0237c4601545ccd5004fb07efa1e3ae68f625909b5930adeba3d7d95818f164f7d` |
+| **User5** | `user5.dat` | `ATmCao5zfgD9N5gkpUZiFkwQQKHsJExHSu` | `020c265364c9640347d8827a2d9f91f0fd3c170de4375c35aa0e3dcf976ce8d662` |
+| **User6** | `user6.dat` | `AKCjCqMuD1KovuUubrqn3dYSXSzfPVuEYq` | `02610168a0ee36b607194d4791886bff9bebdd98b78abdf744470dc5750a940f71` |
+| **User7** | `user7.dat` | `AMrjjwqHq7unCoGEsBdXx7ivCnJuceVmeh` | `039493f15c8a9521123c886184fdc3ac33951b693fc92775f838c4499977837082` |
+| **User8** | `user8.dat` | `AVxUjAcpUXTfvL35rTXKownHan5D2A3rfg` | `02b414008f8dd1d7573e0e1bcf1886a436a81d67c3e6f6dc697f6b176ab5170f9d` |
+| **User9** | `user9.dat` | `AaDAb3yR2MhtvLtdxvaaTkkWt6k7EtyZA8` | `02aa3bb70f070d9eccf4a69128441ee9c2add9805bc4d952530a6fe6c1c41be71c` |
+| **User10** | `user10.dat` | `APGYdiVu1VMBVJKMj1Qexj5q8SP3ePmMBk` | `033b64c879330726247a9f4428408dafdbd73398c8f9452c7b8075dcd1e32c4096` |
 
 ---
 
@@ -58,7 +58,7 @@ done
 ### Step 2: Multi-Sig Funding (Validator to User1)
 On network genesis, 100% of the GAS supply (`1,000,000,000` GAS) is allocated to the **4-of-5 Multi-Signature address** (`AWNwv764Dj1BM2KuvRXeVhbGSUqgokrwnJ`) composed of the validator public keys.
 
-We will build a transfer transaction of `500,000` GAS to **User1**, gather signatures from Validator 1, 2, 3, and 4, and broadcast it.
+We will build a transfer transaction of `1,000,000` GAS to **User1**, gather signatures from Validator 1, 2, 3, and 4, and broadcast it.
 
 ```bash
 # 1. Set environment variables (USER1 is already loaded in Step 1.5)
@@ -70,7 +70,7 @@ export VAL_PUBS="03603f114619cd06c1d04142d2c00a10e8fb3a668245b8105b5c095bf26cd8e
 # 2. Build the unsigned transaction
 ./dnaNode buildtx transfer \
   --from "$MULTISIG" --to "$USER1" \
-  --amount 500000 --asset gas 2>/dev/null | tail -1 > tx.raw
+  --amount 1000000 --asset gas 2>/dev/null | tail -1 > tx.raw
 
 # 3. Sign the transaction sequentially across validator wallets
 # Sign with Validator 1
@@ -93,7 +93,7 @@ export VAL_PUBS="03603f114619cd06c1d04142d2c00a10e8fb3a668245b8105b5c095bf26cd8e
 ---
 
 ### Step 3: Funder Distributes GAS to Users 2–10
-Now that **User1** has `500,000` GAS, they can act as the network onboarding funder and send `10,000` GAS to each of the other users.
+Now that **User1** has `1,000,000` GAS, they can act as the network onboarding funder and send `10,000` GAS to each of the other users.
 
 ```bash
 # User addresses USER2 to USER10 are dynamically loaded in Step 1.5.
@@ -175,6 +175,11 @@ Now we deploy the custom contract:
 > ```
 > *Note down this address for the next steps! We will refer to it as `$CONTRACT_ADDR`.*
 
+Deploy contract:
+  Contract Address:f4e089d8fca9f080b9b4209a33972e793279fc06
+  TxHash:5686cf42fd3d23620d3835c9de0039a6be77dc8dc8d5ff2c31b3088986c60b2a
+
+
 ```bash
 # Set your deployed contract address
 export CONTRACT_ADDR="d2f8bc6933f69c4109ea936dff7d8507e4161850"
@@ -213,7 +218,7 @@ To query the balance, we pass the user's address converted to a bytearray or raw
 ```bash
 ./dnaNode contract invoke \
   --wallet Wallets/user1.dat --address "$CONTRACT_ADDR" \
-  --vmtype 1 --params string:balanceOf,[string:AXXTe7hLX2TYxC6uEgET8G1emFEKEhFvPg] \
+  --vmtype 1 --params "string:balanceOf,[string:$USER1]" \
   --prepare --return int --rpcport 20336
 ```
 > Expected Output: `1000000000`
@@ -229,7 +234,7 @@ Now **User1** transfers `5,000,000` `MYT` tokens directly to **User2** by invoki
   --wallet Wallets/user1.dat --account "$USER1" \
   --address "$CONTRACT_ADDR" \
   --vmtype 1 \
-  --params string:transfer,[string:AXXTe7hLX2TYxC6uEgET8G1emFEKEhFvPg,string:APYAXgfNh5Z5UVZub4dbDTQM9kMbfZqzKH,int:5000000] \
+  --params "string:transfer,[string:$USER1,string:$USER2,int:5000000]" \
   --gasprice 0 --gaslimit 200000 --rpcport 20336
 ```
 
@@ -237,7 +242,7 @@ Verify **User2**'s new `MYT` token balance:
 ```bash
 ./dnaNode contract invoke \
   --wallet Wallets/user1.dat --address "$CONTRACT_ADDR" \
-  --vmtype 1 --params string:balanceOf,[string:APYAXgfNh5Z5UVZub4dbDTQM9kMbfZqzKH] \
+  --vmtype 1 --params "string:balanceOf,[string:$USER2]" \
   --prepare --return int --rpcport 20336
 ```
 > Expected Output: `5000000`
