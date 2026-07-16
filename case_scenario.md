@@ -191,9 +191,11 @@ To distribute the initial supply of `1,000,000,000` tokens (`MYT`) to the contra
   --wallet Wallets/user1.dat --account "$USER1" \
   --address "$CONTRACT_ADDR" \
   --vmtype 1 \
-  --params string:init,[] \
+  --params string:init,[string:foo] \
   --gasprice 0 --gaslimit 200000 --rpcport 20336
 ```
+> [!NOTE]
+> We pass `[string:foo]` as a dummy argument because the `dnaNode` CLI parser has a known bug where empty list inputs `[]` are discarded, causing a NeoVM stack imbalance and `index out of bound` error. Passing a dummy argument satisfies the VM stack parameter requirement.
 
 ---
 
@@ -204,7 +206,7 @@ We can invoke the contract in **prepare/pre-execute** mode (which doesn't write 
 ```bash
 ./dnaNode contract invoke \
   --wallet Wallets/user1.dat --address "$CONTRACT_ADDR" \
-  --vmtype 1 --params string:name,[] \
+  --vmtype 1 --params string:name,[string:foo] \
   --prepare --return string --rpcport 20336
 ```
 > Expected Output: `MyToken`
