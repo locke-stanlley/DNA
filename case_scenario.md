@@ -182,7 +182,7 @@ Deploy contract:
 
 ```bash
 # Set your deployed contract address
-export CONTRACT_ADDR="d2f8bc6933f69c4109ea936dff7d8507e4161850"
+export CONTRACT_ADDR="f4e089d8fca9f080b9b4209a33972e793279fc06"
 ```
 
 ---
