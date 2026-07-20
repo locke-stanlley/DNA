@@ -83,8 +83,41 @@ Then check the balance:
 ./dnaNode asset balance $USER1 --rpcport 20336
 ```
 
-### C. Execute a Cloud Transfer
-Let's send `50` GAS from User1 to User2 across the live Render network!
+### C. Unlock the Genesis Multi-Sig GAS (1,000,000 GAS)
+Before User1 can send money, we must unlock the genesis GAS using the validators' multi-sig wallets. Run this to build the transaction, sign it with 4 nodes, and broadcast it to the cloud:
+
+```bash
+# 1. Set the Genesis Multi-Sig and public keys (from case_scenario.md)
+export MULTISIG="AWNwv764Dj1BM2KuvRXeVhbGSUqgokrwnJ"
+export VAL_PUBS_5="02f86ca933f69c4109ea936dff7d8507e41618500dbd376dd72e011afa6ac577be,0314556d5690d073d4699d719108b583c72be2c30bda56bbfdd58e21f261cd8ec7,03603f114619cd06c1d04142d2c00a10e8fb3a668245b8105b5c095bf26cd8edde,03929c5ceef5e5211910e04ae309c1b623fcb9b118ebb482cf0d02c028d3ec3a57,03e4ca87bb7170539c76a6da64900c960f37946e436802b7ba7f69e170c333f3b4"
+
+# 2. Build the transaction locally
+./dnaNode buildtx transfer \
+  --from "$MULTISIG" --to "$USER1" \
+  --amount 1000000 --asset gas 2>/dev/null | tail -1 > tx.raw
+
+# 3. Sign it with Node 1, 2, and 3
+./dnaNode multisigtx --wallet node1/wallet.dat -m 4 --pubkey "$VAL_PUBS_5" \
+  --wallet-password "123456" --hex-only "$(cat tx.raw)" > tx.sig1
+
+./dnaNode multisigtx --wallet node2/wallet.dat -m 4 --pubkey "$VAL_PUBS_5" \
+  --wallet-password "123456" --hex-only "$(cat tx.sig1)" > tx.sig2
+
+./dnaNode multisigtx --wallet node3/wallet.dat -m 4 --pubkey "$VAL_PUBS_5" \
+  --wallet-password "123456" --hex-only "$(cat tx.sig2)" > tx.sig3
+
+# 4. Sign with Node 4 AND broadcast to the cloud!
+./dnaNode multisigtx --wallet node4/wallet.dat -m 4 --pubkey "$VAL_PUBS_5" \
+  --wallet-password "123456" --send "$(cat tx.sig3)" --rpcport 20336
+```
+
+Wait a few seconds, then check User1's balance again to verify they have `1000000` GAS:
+```bash
+./dnaNode asset balance $USER1 --rpcport 20336
+```
+
+### D. Execute a Cloud Transfer
+Now that User1 has funds, let's send `50` GAS from User1 to User2 across the live Render network!
 ```bash
 # 1. Build the transaction
 ./dnaNode buildtx transfer \
