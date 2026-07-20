@@ -10,11 +10,11 @@ set -euo pipefail
 # ──────────────────────────────────────────────────────────────────────────────
 
 PORT="${PORT:-8090}"
-NODE1_HOST="${NODE1_HOST:-dna-node-1}"
-NODE2_HOST="${NODE2_HOST:-dna-node-2}"
-NODE3_HOST="${NODE3_HOST:-dna-node-3}"
-NODE4_HOST="${NODE4_HOST:-dna-node-4}"
-NODE5_HOST="${NODE5_HOST:-dna-node-5}"
+NODE1_HOST="127.0.0.1"
+NODE2_HOST="127.0.0.1"
+NODE3_HOST="127.0.0.1"
+NODE4_HOST="127.0.0.1"
+NODE5_HOST="127.0.0.1"
 
 SEEDS="${NODE1_HOST}:20338,${NODE2_HOST}:20438,${NODE3_HOST}:20538,${NODE4_HOST}:20638,${NODE5_HOST}:20738"
 
