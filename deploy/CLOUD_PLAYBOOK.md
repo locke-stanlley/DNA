@@ -55,12 +55,30 @@ With the tunnel running, open a **second terminal** in your `/workspaces/DNA` fo
 
 ### A. Check Block Height
 ```bash
-./dnaNode info status --rpcport 20336
+./dnaNode info curblockheight --rpcport 20336
 ```
 *(You should see the block height matching your cloud network)*
 
 ### B. Check User1's Balance
-Make sure you load your user variables first (from `case_scenario.md` Step 1.5).
+Make sure you load your user variables in this terminal first! Run this snippet to populate `$USER1`, `$USER2`, etc.:
+```bash
+for i in {1..10}; do
+  addr=$(./dnaNode account list --wallet Wallets/user${i}.dat | grep -o 'Address:[^ ]*' | cut -d: -f2)
+  export USER${i}="$addr"
+  hex_hash=$(python3 -c "
+ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+def base58_decode(encoded):
+    n = 0
+    for char in encoded:
+        n = n * 58 + ALPHABET.index(char)
+    return n.to_bytes(25, 'big')
+print(base58_decode('$addr')[1:21].hex())
+")
+  export USER${i}_HEX="$hex_hash"
+done
+```
+
+Then check the balance:
 ```bash
 ./dnaNode asset balance $USER1 --rpcport 20336
 ```
