@@ -34,7 +34,7 @@ cat << 'EOF' > "$DATA_BASE/config.json"
   ],
   "ConsensusType": "vbft",
   "VBFT": {
-    "n": 5, "c": 1, "k": 5, "l": 112,
+    "n": 5, "c": 1, "k": 5, "l": 80,
     "block_msg_delay": 10000, "hash_msg_delay": 10000, "peer_handshake_timeout": 10, "max_block_change_view": 3000,
     "admin_ont_id": "did:dna:AMAx993nE6NEqZjwBssUfopxnnvTdob9ij", "min_init_stake": 10000,
     "vrf_value": "1c9810aa9822e511d5804a9c4db9dd08497c31087b0daafa34d768a3253441fa20515e2f30f81741102af0ca3cefc4818fef16adb825fbaa8cad78647f3afb590e",
