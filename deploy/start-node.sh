@@ -21,9 +21,10 @@ WS_PORT="${WS_PORT:?WS_PORT must be set}"
 WALLET_PASSWORD="${WALLET_PASSWORD:?WALLET_PASSWORD must be set}"
 BOOTSTRAP_HOST="${BOOTSTRAP_HOST:?BOOTSTRAP_HOST must be set (e.g. dna-bootstrap.onrender.com)}"
 BOOTSTRAP_PORT="${BOOTSTRAP_PORT:-8090}"
-DATA_DIR="${DATA_DIR:-/chain-data}"
+DATA_DIR="${DATA_DIR:-/tmp/chain}"
 
-# Render serves the genesis config at /genesis-config on the bootstrap web service
+# Full genesis config URL — the bootstrap web service serves this at /genesis-config
+# Use https:// since the bootstrap is a Render Web Service (always HTTPS on Render)
 BOOTSTRAP_URL="https://${BOOTSTRAP_HOST}/genesis-config"
 
 # Repo root is the CWD when Render runs the startCommand
