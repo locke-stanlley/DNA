@@ -1,0 +1,196 @@
+# ─── DNA Network — Render Blueprint ──────────────────────────────────────────
+# Deploys a 5-validator DNA blockchain network on Render:
+#
+#   dna-bootstrap  ← Web Service (public HTTPS) — genesis config + peer discovery
+#   dna-node-1..5  ← Background Workers — VBFT consensus validators
+#
+# ── Before deploying ─────────────────────────────────────────────────────────
+# 1. Fork/push this repo to GitHub (ensure dnaNode binary is committed)
+# 2. In Render Dashboard → "New" → "Blueprint"
+# 3. Connect your GitHub repo
+# 4. After bootstrap deploys, note its public URL (e.g. dna-bootstrap.onrender.com)
+# 5. Set BOOTSTRAP_HOST env var on each node service to that hostname
+#
+# ── Networking notes ─────────────────────────────────────────────────────────
+# Render Background Workers don't get public URLs.
+# Nodes talk to each other on internal Render private network:
+#   dna-node-1:20338, dna-node-2:20438, etc.
+# The bootstrap Web Service IS public (needed so nodes can fetch genesis config).
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Bootstrap / Genesis Config Server ─────────────────────────────────────
+  - type: web
+    name: dna-bootstrap
+    runtime: native
+    repo: https://github.com/YOUR_USERNAME/DNA   # ← update with your repo URL
+    buildCommand: chmod +x dnaNode deploy/start-bootstrap.sh
+    startCommand: bash deploy/start-bootstrap.sh
+    plan: starter
+    envVars:
+      - key: PORT
+        value: "8090"
+      # Internal Render private network hostnames for each node service
+      - key: NODE1_HOST
+        value: dna-node-1
+      - key: NODE2_HOST
+        value: dna-node-2
+      - key: NODE3_HOST
+        value: dna-node-3
+      - key: NODE4_HOST
+        value: dna-node-4
+      - key: NODE5_HOST
+        value: dna-node-5
+
+  # ── Validator Node 1 ───────────────────────────────────────────────────────
+  - type: worker
+    name: dna-node-1
+    runtime: native
+    repo: https://github.com/YOUR_USERNAME/DNA
+    buildCommand: chmod +x dnaNode deploy/start-node.sh
+    startCommand: bash deploy/start-node.sh
+    plan: starter
+    disk:
+      name: node1-chain-data
+      mountPath: /chain-data
+      sizeGB: 5
+    envVars:
+      - key: NODE_NUM
+        value: "1"
+      - key: NODE_PORT
+        value: "20338"
+      - key: RPC_PORT
+        value: "20336"
+      - key: REST_PORT
+        value: "20334"
+      - key: WS_PORT
+        value: "20335"
+      - key: DATA_DIR
+        value: "/chain-data"
+      - key: WALLET_PASSWORD
+        value: "123456"     # ← use a Render Secret in production
+      # Set BOOTSTRAP_HOST to the public hostname of dna-bootstrap after first deploy
+      # e.g. dna-bootstrap.onrender.com
+      - key: BOOTSTRAP_HOST
+        value: dna-bootstrap.onrender.com   # ← update after bootstrap deploys
+
+  # ── Validator Node 2 ───────────────────────────────────────────────────────
+  - type: worker
+    name: dna-node-2
+    runtime: native
+    repo: https://github.com/YOUR_USERNAME/DNA
+    buildCommand: chmod +x dnaNode deploy/start-node.sh
+    startCommand: bash deploy/start-node.sh
+    plan: starter
+    disk:
+      name: node2-chain-data
+      mountPath: /chain-data
+      sizeGB: 5
+    envVars:
+      - key: NODE_NUM
+        value: "2"
+      - key: NODE_PORT
+        value: "20438"
+      - key: RPC_PORT
+        value: "20436"
+      - key: REST_PORT
+        value: "20434"
+      - key: WS_PORT
+        value: "20435"
+      - key: DATA_DIR
+        value: "/chain-data"
+      - key: WALLET_PASSWORD
+        value: "123456"
+      - key: BOOTSTRAP_HOST
+        value: dna-bootstrap.onrender.com
+
+  # ── Validator Node 3 ───────────────────────────────────────────────────────
+  - type: worker
+    name: dna-node-3
+    runtime: native
+    repo: https://github.com/YOUR_USERNAME/DNA
+    buildCommand: chmod +x dnaNode deploy/start-node.sh
+    startCommand: bash deploy/start-node.sh
+    plan: starter
+    disk:
+      name: node3-chain-data
+      mountPath: /chain-data
+      sizeGB: 5
+    envVars:
+      - key: NODE_NUM
+        value: "3"
+      - key: NODE_PORT
+        value: "20538"
+      - key: RPC_PORT
+        value: "20536"
+      - key: REST_PORT
+        value: "20534"
+      - key: WS_PORT
+        value: "20535"
+      - key: DATA_DIR
+        value: "/chain-data"
+      - key: WALLET_PASSWORD
+        value: "123456"
+      - key: BOOTSTRAP_HOST
+        value: dna-bootstrap.onrender.com
+
+  # ── Validator Node 4 ───────────────────────────────────────────────────────
+  - type: worker
+    name: dna-node-4
+    runtime: native
+    repo: https://github.com/YOUR_USERNAME/DNA
+    buildCommand: chmod +x dnaNode deploy/start-node.sh
+    startCommand: bash deploy/start-node.sh
+    plan: starter
+    disk:
+      name: node4-chain-data
+      mountPath: /chain-data
+      sizeGB: 5
+    envVars:
+      - key: NODE_NUM
+        value: "4"
+      - key: NODE_PORT
+        value: "20638"
+      - key: RPC_PORT
+        value: "20636"
+      - key: REST_PORT
+        value: "20634"
+      - key: WS_PORT
+        value: "20635"
+      - key: DATA_DIR
+        value: "/chain-data"
+      - key: WALLET_PASSWORD
+        value: "123456"
+      - key: BOOTSTRAP_HOST
+        value: dna-bootstrap.onrender.com
+
+  # ── Validator Node 5 ───────────────────────────────────────────────────────
+  - type: worker
+    name: dna-node-5
+    runtime: native
+    repo: https://github.com/YOUR_USERNAME/DNA
+    buildCommand: chmod +x dnaNode deploy/start-node.sh
+    startCommand: bash deploy/start-node.sh
+    plan: starter
+    disk:
+      name: node5-chain-data
+      mountPath: /chain-data
+      sizeGB: 5
+    envVars:
+      - key: NODE_NUM
+        value: "5"
+      - key: NODE_PORT
+        value: "20738"
+      - key: RPC_PORT
+        value: "20736"
+      - key: REST_PORT
+        value: "20734"
+      - key: WS_PORT
+        value: "20735"
+      - key: DATA_DIR
+        value: "/chain-data"
+      - key: WALLET_PASSWORD
+        value: "123456"
+      - key: BOOTSTRAP_HOST
+        value: dna-bootstrap.onrender.com

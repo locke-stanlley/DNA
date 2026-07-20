@@ -35,7 +35,20 @@ glide.lock
 docker/payload
 config.json
 peers.recent
-dnaNode
+
+
 node_modules
 dist
 .next
+# ── Render deploy exceptions ──────────────────────────────────────────────────
+# Force-track the compiled binary and node wallets for deployment
+!dnaNode
+!node1/wallet.dat
+!node2/wallet.dat
+!node3/wallet.dat
+!node4/wallet.dat
+!node5/wallet.dat
+# Keep ignoring user wallets and chain data
+Wallets/
+node*/Chain/
+node*/Log/
