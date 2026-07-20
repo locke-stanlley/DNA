@@ -12,9 +12,7 @@ set -euo pipefail
 # ─────────────────────────────────────────────────────────────────────────────
 
 WALLET_PASSWORD="${WALLET_PASSWORD:-123456}"
-BOOTSTRAP_HOST="${BOOTSTRAP_HOST:?Set BOOTSTRAP_HOST to dna-bootstrap.onrender.com}"
 PORT="${PORT:-10000}"
-BOOTSTRAP_URL="https://${BOOTSTRAP_HOST}/genesis-config"
 REPO_ROOT="$(pwd)"
 BINARY="${REPO_ROOT}/dnaNode"
 DATA_BASE="${DATA_BASE:-/tmp/chain}"
@@ -23,11 +21,34 @@ chmod +x "$BINARY"
 
 echo "========================================================"
 echo " DNA Network — All-in-One Node Runner"
-echo " Bootstrap: $BOOTSTRAP_URL"
 echo " Health/RPC port: $PORT"
 echo "========================================================"
 
 mkdir -p "$DATA_BASE"
+
+# Generate a clean local config with all 5 nodes on localhost
+cat << 'EOF' > "$DATA_BASE/config.json"
+{
+  "SeedList": [
+    "127.0.0.1:20338", "127.0.0.1:20438", "127.0.0.1:20538", "127.0.0.1:20638", "127.0.0.1:20738"
+  ],
+  "ConsensusType": "vbft",
+  "VBFT": {
+    "n": 5, "c": 1, "k": 5, "l": 112,
+    "block_msg_delay": 10000, "hash_msg_delay": 10000, "peer_handshake_timeout": 10, "max_block_change_view": 3000,
+    "admin_ont_id": "did:dna:AMAx993nE6NEqZjwBssUfopxnnvTdob9ij", "min_init_stake": 10000,
+    "vrf_value": "1c9810aa9822e511d5804a9c4db9dd08497c31087b0daafa34d768a3253441fa20515e2f30f81741102af0ca3cefc4818fef16adb825fbaa8cad78647f3afb590e",
+    "vrf_proof": "c57741f934042cb8d8b087b44b161db56fc3ffd4ffb675d36cd09f83935be853d8729f3f5298d12d6fd28d45dde515a4b9d7f67682d182ba5118abf451ff1988",
+    "peers": [
+      {"index": 1, "peerPubkey": "03603f114619cd06c1d04142d2c00a10e8fb3a668245b8105b5c095bf26cd8edde", "address": "AX3LEE3rUhinSjcyW5R6Cz6NZZKA16RTMM", "initPos": 10000},
+      {"index": 2, "peerPubkey": "02f86ca933f69c4109ea936dff7d8507e41618500dbd376dd72e011afa6ac577be", "address": "ASsynsUiDCmdGSbAMXgyz6uGDc4EKYpuao", "initPos": 10000},
+      {"index": 3, "peerPubkey": "0314556d5690d073d4699d719108b583c72be2c30bda56bbfdd58e21f261cd8ec7", "address": "ARu8bPLsFFgTzUJHs2i8xN5bp6aVF5TnfY", "initPos": 10000},
+      {"index": 4, "peerPubkey": "03929c5ceef5e5211910e04ae309c1b623fcb9b118ebb482cf0d02c028d3ec3a57", "address": "AdQ9w5GTmjDGCyWAAwhusNaTnCzcnqgf4k", "initPos": 10000},
+      {"index": 5, "peerPubkey": "03e4ca87bb7170539c76a6da64900c960f37946e436802b7ba7f69e170c333f3b4", "address": "AdLxFR53J7MGDv1LdfLzxGXpqQZ4xoY1qS", "initPos": 10000}
+    ]
+  }
+}
+EOF
 
 # ── Launch all 5 nodes (localhost P2P — no external networking needed) ────────
 start_node() {
@@ -38,7 +59,7 @@ start_node() {
 
   echo "[node${num}] Starting on p2p=127.0.0.1:${nport} rpc=${rport} rest=${restport} ws=${wsport}"
   "$BINARY" \
-    --config   "$BOOTSTRAP_URL" \
+    --config   "$DATA_BASE/config.json" \
     --data-dir "$datadir" \
     --wallet   "$wallet" \
     --nodeport "$nport" \
