@@ -19,8 +19,9 @@ The genesis block (Block 0) contains the hardcoded configuration and initial ass
 ### 1.2 Fetch the Latest Block
 Get the exact details of the most recently minted block:
 ```bash
-# Get the current height first
-HEIGHT=$(./dnaNode info curblockheight --rpcport 20336 | grep -o '[0-9]*')
+# Get the current height (stripping ANSI color codes)
+HEIGHT=$(./dnaNode info curblockheight --rpcport 20336 | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" | grep -o '[0-9]*')
+
 # Fetch the block by height
 ./dnaNode info block $HEIGHT --rpcport 20336
 ```
@@ -36,49 +37,7 @@ export TX_HASH="<REPLACE_WITH_YOUR_TX_HASH>"
 
 ---
 
-## Test Case 2: Native Asset Transfers (ONT vs GAS)
-DNA has a dual-token model. **ONT** is indivisible (must be whole numbers) and used for staking/governance. **GAS** is divisible and used for paying transaction fees.
-
-### 2.1 Attempt an Indivisible ONT Transfer
-Let's try to send `0.5` ONT. Because ONT is indivisible, the network should reject this mathematically invalid transaction.
-```bash
-./dnaNode buildtx transfer \
-  --wallet Wallets/user1.dat --from "$USER1" --to "$USER2" \
-  --amount 0.5 --asset ont 2>/dev/null | tail -1 > invalid_tx.raw
-
-./dnaNode sigtx \
-  --wallet Wallets/user1.dat --wallet-password "123456" \
-  --send "$(cat invalid_tx.raw)" --rpcport 20336
-```
-**Expected Outcome**: The node should return an error indicating `invalid amount` or `indivisible asset`.
-
-### 2.2 Valid ONT Transfer
-Now, transfer a valid, whole amount of ONT (Note: Only the Genesis Multi-Sig holds ONT initially, so you must use it as the source).
-```bash
-export MULTISIG="AWNwv764Dj1BM2KuvRXeVhbGSUqgokrwnJ"
-
-./dnaNode buildtx transfer \
-  --from "$MULTISIG" --to "$USER1" \
-  --amount 500 --asset ont 2>/dev/null | tail -1 > ont_tx.raw
-
-./dnaNode multisigtx --wallet node1/wallet.dat -m 4 --pubkey "$VAL_PUBS_5" \
-  --wallet-password "123456" --hex-only "$(cat ont_tx.raw)" > ont.sig1
-./dnaNode multisigtx --wallet node2/wallet.dat -m 4 --pubkey "$VAL_PUBS_5" \
-  --wallet-password "123456" --hex-only "$(cat ont.sig1)" > ont.sig2
-./dnaNode multisigtx --wallet node3/wallet.dat -m 4 --pubkey "$VAL_PUBS_5" \
-  --wallet-password "123456" --hex-only "$(cat ont.sig2)" > ont.sig3
-./dnaNode multisigtx --wallet node4/wallet.dat -m 4 --pubkey "$VAL_PUBS_5" \
-  --wallet-password "123456" --send "$(cat ont.sig3)" --rpcport 20336
-```
-Wait a few seconds, then check balances:
-```bash
-./dnaNode asset balance $USER1 --rpcport 20336
-```
-**Expected Outcome**: `ONT: 500` will now appear in User1's wallet.
-
----
-
-## Test Case 3: Advanced Smart Contract Execution (OEP-4 Token Transfer)
+## Test Case 2: Advanced Smart Contract Execution (OEP-4 Token Transfer)
 You previously deployed the `MyCloudToken` contract and verified User1 holds `1,000,000,000` tokens using `--prepare` mode (read-only). Now, let's actually execute a state-changing transaction on the ledger to transfer those tokens!
 
 ### 3.1 Execute the Token Transfer
