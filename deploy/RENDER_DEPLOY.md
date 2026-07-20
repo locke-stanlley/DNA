@@ -1,57 +1,64 @@
 # DNA Network — Render Deployment Guide
 
-## Network Overview
+## Service Types (Free Tier Compatible)
 
-6 Render services total. **Deploy them in order — bootstrap first.**
+Background Workers require a paid plan. Run **all 6 services as Web Services** instead —
+the DNA node's built-in REST API satisfies Render's HTTP requirement, and P2P ports
+work over Render's internal private network between services.
 
-| # | Service Name | Render Type | URL / Access |
+| # | Service Name | Type | Tier |
 |---|---|---|---|
-| 1 | `dna-bootstrap` | **Web Service** | `https://dna-bootstrap.onrender.com` ✅ Live |
-| 2 | `dna-node-1` | Background Worker | Internal only |
-| 3 | `dna-node-2` | Background Worker | Internal only |
-| 4 | `dna-node-3` | Background Worker | Internal only |
-| 5 | `dna-node-4` | Background Worker | Internal only |
-| 6 | `dna-node-5` | Background Worker | Internal only |
+| 1 | `dna-bootstrap` | Web Service | Free ✅ |
+| 2 | `dna-node-1` | Web Service | Free ✅ |
+| 3 | `dna-node-2` | Web Service | Free ✅ |
+| 4 | `dna-node-3` | Web Service | Free ✅ |
+| 5 | `dna-node-4` | Web Service | Free ✅ |
+| 6 | `dna-node-5` | Web Service | Free ✅ |
 
 ```
-  You / Clients
+  Internet / Health monitors
        │
-       ▼  HTTPS
-┌──────────────────────────────────────┐
-│  dna-bootstrap  (Web Service)        │  https://dna-bootstrap.onrender.com
-│                                      │
-│  GET  /genesis-config  ← nodes use   │
-│  GET  /peers           ← peer list   │
-│  GET  /status          ← health ✅   │
-└──────────────────┬───────────────────┘
-                   │ announces peer seeds on startup
-       ┌───────────┼───────────┬───────────┬───────────┐
-       ▼           ▼           ▼           ▼           ▼
-  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
-  │ node-1  │ │ node-2  │ │ node-3  │ │ node-4  │ │ node-5  │
-  │ :20338  │◀│ :20438  │◀│ :20538  │◀│ :20638  │◀│ :20738  │
-  │ worker  │▶│ worker  │▶│ worker  │▶│ worker  │▶│ worker  │
-  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘
-              Render internal private network (VBFT consensus P2P)
+       ├──────────────────────────────────────────────────────────┐
+       │  HTTPS (public)                                          │  HTTPS (public)
+       ▼                                                          ▼
+┌─────────────────────────┐                          ┌─────────────────────────┐
+│   dna-bootstrap         │                          │   dna-node-1            │
+│   Web Service (free)    │                          │   Web Service (free)    │
+│                         │                          │                         │
+│   GET /genesis-config   │                          │   REST API on $PORT     │
+│   GET /peers            │◀── nodes register ───────│   P2P on :20338         │
+│   GET /status  ← health │                          │   health: /api/v1/...   │
+└─────────────────────────┘                          └────────────┬────────────┘
+                                                                  │
+                                          Render internal private network
+                                                                  │
+                                   ┌──────────────────────────────┤
+                                   ▼                              ▼
+                         ┌─────────────────┐           ┌─────────────────┐
+                         │   dna-node-2    │◀─────────▶│   dna-node-3    │ ...
+                         │   :20438 (P2P)  │           │   :20538 (P2P)  │
+                         └─────────────────┘           └─────────────────┘
 ```
+
+> **How it works**: Render assigns each Web Service a public `$PORT`. The node
+> binds its REST API to `$PORT` (satisfying Render's health check). The fixed P2P
+> port (20338/20438/...) is only reachable on Render's internal network — exactly
+> what the other nodes need for consensus gossip.
 
 ---
 
 ## Step 1 — Push the Repo
-
-Make sure all required files are committed and pushed:
 
 ```bash
 cd /workspaces/DNA
 
 git add .gitignore render.yaml
 git add deploy/start-bootstrap.sh deploy/start-node.sh deploy/RENDER_DEPLOY.md
-git add dnaNode                               # compiled binary (~25 MB)
-git add node1/wallet.dat node2/wallet.dat \
-        node3/wallet.dat node4/wallet.dat \
-        node5/wallet.dat                      # validator keys (encrypted)
+git add dnaNode
+git add node1/wallet.dat node2/wallet.dat node3/wallet.dat \
+        node4/wallet.dat node5/wallet.dat
 
-git commit -m "feat: Render deployment config"
+git commit -m "feat: Render deployment — Web Service free tier"
 git push origin master
 ```
 
@@ -59,69 +66,66 @@ git push origin master
 
 ## Step 2 — Bootstrap Service ✅ Already Live
 
-The bootstrap service is already deployed at:
 ```
 https://dna-bootstrap.onrender.com
 ```
 
-### Fix the health check (do this now)
-
-Render's health checker pings `/` which returns 404. Change it to `/status`:
+### Fix the health check path
 
 1. Render Dashboard → `dna-bootstrap` → **Settings**
-2. Scroll to **Health Check Path**
-3. Change `/` → `/status`
-4. Save
+2. **Health Check Path** → change `/` to `/status`
+3. Save
 
-You can verify it works:
+Verify it's working:
 ```bash
 curl https://dna-bootstrap.onrender.com/status
 curl https://dna-bootstrap.onrender.com/genesis-config
-curl https://dna-bootstrap.onrender.com/peers
 ```
 
 ---
 
-## Step 3 — Create the 5 Node Services
+## Step 3 — Create the 5 Node Web Services
 
-For **each** of the 5 nodes, do: **New +** → **Background Worker** → connect your GitHub repo.
+For **each** of the 5 nodes: **New +** → **Web Service** → connect your GitHub repo.
 
-Use these settings for every node:
+### Build & Start settings (same for all 5 nodes)
 
 | Field | Value |
 |---|---|
-| **Runtime** | `Native` |
+| **Language** | `Native` (select manually — Render may auto-detect Go) |
+| **Branch** | `master` |
 | **Build Command** | `chmod +x dnaNode deploy/start-node.sh` |
 | **Start Command** | `bash deploy/start-node.sh` |
-| **Instance Type** | Free |
+| **Instance Type** | **Free** |
+| **Health Check Path** | `/api/v1/block/height` |
 
-Then add the environment variables from the table for that node:
+### Environment Variables per node
 
 ---
 
-### `dna-node-1` — Environment Variables
+#### `dna-node-1`
 
 | Key | Value |
 |---|---|
 | `NODE_NUM` | `1` |
 | `NODE_PORT` | `20338` |
 | `RPC_PORT` | `20336` |
-| `REST_PORT` | `20334` |
 | `WS_PORT` | `20335` |
 | `WALLET_PASSWORD` | `123456` |
 | `DATA_DIR` | `/tmp/chain` |
 | `BOOTSTRAP_HOST` | `dna-bootstrap.onrender.com` |
 
+> **Do NOT add `REST_PORT`** — Render injects `$PORT` automatically and the script uses it.
+
 ---
 
-### `dna-node-2` — Environment Variables
+#### `dna-node-2`
 
 | Key | Value |
 |---|---|
 | `NODE_NUM` | `2` |
 | `NODE_PORT` | `20438` |
 | `RPC_PORT` | `20436` |
-| `REST_PORT` | `20434` |
 | `WS_PORT` | `20435` |
 | `WALLET_PASSWORD` | `123456` |
 | `DATA_DIR` | `/tmp/chain` |
@@ -129,14 +133,13 @@ Then add the environment variables from the table for that node:
 
 ---
 
-### `dna-node-3` — Environment Variables
+#### `dna-node-3`
 
 | Key | Value |
 |---|---|
 | `NODE_NUM` | `3` |
 | `NODE_PORT` | `20538` |
 | `RPC_PORT` | `20536` |
-| `REST_PORT` | `20534` |
 | `WS_PORT` | `20535` |
 | `WALLET_PASSWORD` | `123456` |
 | `DATA_DIR` | `/tmp/chain` |
@@ -144,14 +147,13 @@ Then add the environment variables from the table for that node:
 
 ---
 
-### `dna-node-4` — Environment Variables
+#### `dna-node-4`
 
 | Key | Value |
 |---|---|
 | `NODE_NUM` | `4` |
 | `NODE_PORT` | `20638` |
 | `RPC_PORT` | `20636` |
-| `REST_PORT` | `20634` |
 | `WS_PORT` | `20635` |
 | `WALLET_PASSWORD` | `123456` |
 | `DATA_DIR` | `/tmp/chain` |
@@ -159,14 +161,13 @@ Then add the environment variables from the table for that node:
 
 ---
 
-### `dna-node-5` — Environment Variables
+#### `dna-node-5`
 
 | Key | Value |
 |---|---|
 | `NODE_NUM` | `5` |
 | `NODE_PORT` | `20738` |
 | `RPC_PORT` | `20736` |
-| `REST_PORT` | `20734` |
 | `WS_PORT` | `20735` |
 | `WALLET_PASSWORD` | `123456` |
 | `DATA_DIR` | `/tmp/chain` |
@@ -174,39 +175,41 @@ Then add the environment variables from the table for that node:
 
 ---
 
-## Step 4 — Verify the Network
+## Step 4 — Keep Services Alive (Free Tier)
 
-Once all 5 nodes show **Live** in the Render dashboard, verify consensus via
-the **Shell** tab on any node service:
+Free Web Services spin down after **15 minutes of no external traffic**.
+Set up a free uptime monitor to ping all 6 services every 5 minutes:
 
-```bash
-# Is the node running and at what block?
-curl -s -d '{"jsonrpc":"2.0","method":"getblockcount","params":[],"id":1}' \
-  -H "Content-Type: application/json" http://localhost:20336 | python3 -m json.tool
+1. Sign up at [uptimerobot.com](https://uptimerobot.com) (free)
+2. Create an **HTTP monitor** for each service URL:
 
-# How many peers is node-1 connected to? (should be 4)
-curl -s -d '{"jsonrpc":"2.0","method":"getconnectioncount","params":[],"id":1}' \
-  -H "Content-Type: application/json" http://localhost:20336 | python3 -m json.tool
+| Monitor Name | URL to ping |
+|---|---|
+| `dna-bootstrap` | `https://dna-bootstrap.onrender.com/status` |
+| `dna-node-1` | `https://dna-node-1.onrender.com/api/v1/block/height` |
+| `dna-node-2` | `https://dna-node-2.onrender.com/api/v1/block/height` |
+| `dna-node-3` | `https://dna-node-3.onrender.com/api/v1/block/height` |
+| `dna-node-4` | `https://dna-node-4.onrender.com/api/v1/block/height` |
+| `dna-node-5` | `https://dna-node-5.onrender.com/api/v1/block/height` |
 
-# Check bootstrap knows about all peers
-curl https://dna-bootstrap.onrender.com/peers
-```
-
-Healthy output when consensus is running:
-```json
-{ "result": 42 }   ← block count growing
-{ "result": 4  }   ← 4 peers connected
-```
+3. Set interval to **5 minutes** for all monitors
 
 ---
 
-## What Happens When a Node Starts
+## Step 5 — Verify the Network
 
-1. Node reads `BOOTSTRAP_HOST` → builds URL `https://dna-bootstrap.onrender.com/genesis-config`
-2. Fetches the genesis config (network identity, validator public keys, VBFT params)
-3. Registers itself with the bootstrap via `POST /register?port=<NODE_PORT>`
-4. Connects to the other 4 peers listed in `/peers`
-5. Starts VBFT consensus — blocks begin producing every few seconds
+Once all nodes are live, test from your local machine:
+
+```bash
+# Check block height on node 1 (should be > 0 and growing)
+curl https://dna-node-1.onrender.com/api/v1/block/height
+
+# Check how many peers node 1 sees (should be 4)
+curl -s https://dna-node-1.onrender.com/api/v1/node/connection/count
+
+# Check bootstrap knows all 5 peers
+curl https://dna-bootstrap.onrender.com/peers
+```
 
 ---
 
@@ -214,21 +217,22 @@ Healthy output when consensus is running:
 
 | Issue | Impact | Fix |
 |---|---|---|
-| Bootstrap spins down after 15 min idle | Nodes can't cold-start without it | Upgrade bootstrap to **Starter** ($7/mo) or use an uptime monitor |
-| No persistent disks | `DATA_DIR=/tmp/chain` resets on restart | Add a **Disk** to each node, mount at `/chain-data`, set `DATA_DIR=/chain-data` |
-| 512 MB RAM per service | May OOM under heavy consensus load | Monitor and upgrade to Starter if needed |
+| Services spin down after 15 min idle | Consensus pauses | Use UptimeRobot (see Step 4) |
+| No persistent disks | `/tmp/chain` resets on restart | Upgrade to Starter + add Disk, set `DATA_DIR=/chain-data` |
+| 512 MB RAM | May OOM under heavy load | Upgrade to Starter ($7/mo) if nodes crash |
+| Cold start ~30s | First request slow after spin-down | UptimeRobot prevents this |
 
 ---
 
-## All Variables Reference
+## All Environment Variables Reference
 
-| Variable | Required | Description | Node 1 value |
-|---|---|---|---|
-| `NODE_NUM` | ✅ | Node index (1–5) | `1` |
-| `NODE_PORT` | ✅ | P2P gossip port | `20338` |
-| `RPC_PORT` | ✅ | JSON-RPC API | `20336` |
-| `REST_PORT` | ✅ | REST API | `20334` |
-| `WS_PORT` | ✅ | WebSocket | `20335` |
-| `WALLET_PASSWORD` | ✅ | Wallet decryption | `123456` |
-| `BOOTSTRAP_HOST` | ✅ | Bootstrap hostname (no `https://`) | `dna-bootstrap.onrender.com` |
-| `DATA_DIR` | optional | Chain data path | `/tmp/chain` |
+| Variable | Required | Description |
+|---|---|---|
+| `NODE_NUM` | ✅ | Node index (1–5) |
+| `NODE_PORT` | ✅ | Fixed P2P port (internal network) |
+| `RPC_PORT` | ✅ | Fixed JSON-RPC port (internal network) |
+| `WS_PORT` | ✅ | Fixed WebSocket port (internal network) |
+| `WALLET_PASSWORD` | ✅ | Wallet decryption password |
+| `BOOTSTRAP_HOST` | ✅ | Bootstrap hostname — no `https://`, no trailing slash |
+| `DATA_DIR` | optional | Chain data path (default: `/tmp/chain`) |
+| `PORT` | auto | **Injected by Render** — used as `--restport` (public HTTP) |
